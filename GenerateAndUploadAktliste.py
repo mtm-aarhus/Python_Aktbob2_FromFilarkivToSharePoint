@@ -131,16 +131,24 @@ def invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste):
     downloads_path = os.path.join("C:\\Users", os.getlogin(), "Downloads")
     file_path = os.path.join(downloads_path, AktlisteFileName)
 
-    # Upload Excel to Sharepoint
+    # # Upload Excel to Sharepoint
+    # upload_file_to_sharepoint(
+    #     site_url=SharePointURL,
+    #     overmappe=Overmappe,
+    #     undermappe=Undermappe,
+    #     file_path=file_path,
+    #     sharepoint_app_id=SharePointAppID,
+    #     sharepoint_tenant=SharePointTenant,
+    #     robot_username=RobotUserName,
+    #     robot_password=RobotPassword
+    # )
     upload_file_to_sharepoint(
         site_url=SharePointURL,
-        overmappe=Overmappe,
-        undermappe=Undermappe,
+        Overmappe=Overmappe,
+        Undermappe=Undermappe,
         file_path=file_path,
-        sharepoint_app_id=SharePointAppID,
-        sharepoint_tenant=SharePointTenant,
-        robot_username=RobotUserName,
-        robot_password=RobotPassword
+        RobotUserName=RobotUserName,
+        RobotPassword=RobotPassword
     )
 
     #Omdanner PDF til Excel
@@ -311,13 +319,11 @@ def invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste):
     # Upload Excel to Sharepoint
     upload_file_to_sharepoint(
         site_url=SharePointURL,
-        overmappe=Overmappe,
-        undermappe=Undermappe,
+        Overmappe=Overmappe,
+        Undermappe=Undermappe,
         file_path=pdf_path,
-        sharepoint_app_id=SharePointAppID,
-        sharepoint_tenant=SharePointTenant,
-        robot_username=RobotUserName,
-        robot_password=RobotPassword
+        RobotUserName=RobotUserName,
+        RobotPassword=RobotPassword
     )
 
     #Deleting local files: 

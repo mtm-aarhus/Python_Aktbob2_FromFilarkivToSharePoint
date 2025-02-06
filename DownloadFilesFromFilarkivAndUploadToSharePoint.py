@@ -73,14 +73,13 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
             try:
                 upload_file_to_sharepoint(
                     site_url=SharePointURL,
-                    overmappe=Overmappe,
-                    undermappe=Undermappe,
+                    Overmappe=Overmappe,
+                    Undermappe=Undermappe,
                     file_path=file_path,
-                    sharepoint_app_id=SharePointAppID,
-                    sharepoint_tenant=SharePointTenant,
-                    robot_username=RobotUserName,
-                    robot_password=RobotPassword
+                    RobotUserName=RobotUserName,
+                    RobotPassword=RobotPassword
                 )
+
             except Exception as e:
                 print(f"Error uploading {file_path}: {str(e)}")
 
