@@ -59,7 +59,6 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
             expiration_date = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%S%z")
             characters = string.ascii_letters + string.digits 
             password = ''.join(random.choices(characters, k=6))
-            print(password)
             secure_link_result = folder.share_link(
                 link_kind=SharingLinkKind.Flexible,
                 expiration=expiration_date,
@@ -94,8 +93,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
         url = "https://aarhuskommune4.deskpro.com/api/v2/webhooks/A7O1H3HKEW76MAXA/invocation"
         
         # Calculate expiration date (current date + 30 days) and format it
-        expiration_date = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%dT00:00:00Z")
-        
+        expiration_date = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
         # JSON payload
         payload = {
             "sharePointShareUrl": secure_link,
@@ -135,7 +133,6 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
     send_LinkToDeskpro(secure_link, password, DeskProID)
 
 
-
     # Define email details
     sender = "Aktbob<rpamtm001@aarhus.dk>" # Replace with actual sender
     subject = f"Robotten er færdig med aktlisten for {Sagsnummer}"
@@ -162,13 +159,6 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
         smtp_port=smtp_port,
         html_body=True
     )
-
-
-
-
-
-
-
 
 
     return {"out_Text": "Delinger er blevet oprettet"}
