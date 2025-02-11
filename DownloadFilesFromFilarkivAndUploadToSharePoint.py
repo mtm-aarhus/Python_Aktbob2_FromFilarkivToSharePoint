@@ -64,7 +64,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                             else:
                                 print(f"Failed to download {file_name}: {response.status_code}")
                         except Exception as e:
-                            print(f"Error downloading {file_name}: {str(e)}")
+                            raise Exception(f"Error downloading {file_name}: {str(e)}")
         
         return downloaded_files
 
@@ -88,7 +88,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
             try:
                 os.remove(file_path)
             except Exception as e:
-                print(f"Error deleting {file_path}: {str(e)}")
+                raise Exception(f"Error deleting {file_path}: {str(e)}")
 
     # Execute the workflow
 

@@ -196,7 +196,7 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
                 else:
                     print("Failed to fetch Sagstitel from NOVA. Status Code:", response.status_code)
             except Exception as e:
-                print("Failed to fetch Sagstitel (Nova):", str(e))
+                raise Exception("Failed to fetch Sagstitel (Nova):", str(e))
 
             DokumentType = response.json()["documents"][0]["fileExtension"]
             DocumentUuid = response.json()["documents"][0]["documentUuid"]

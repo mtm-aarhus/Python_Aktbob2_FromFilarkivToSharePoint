@@ -69,53 +69,53 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
 
             return public_link, secure_link, password
         except Exception as e:
-            print(f"Error generating shareable links: {e}")
-            return None, None
+            raise Exception(f"Error generating shareable links: {e}")
 
 
     def upload_sharepoint_link_to_podio(PodioID: str, ApiKey: str, SharePointLink: str):
-        url = f"https://aktbob-external-api.grayglacier-2d22de15.northeurope.azurecontainerapps.io/Api/Podio/{PodioID}/SharepointmappeField"
-        headers = {
-            "ApiKey": ApiKey,
-            "Content-Type": "application/json"
-        }
-        json_body = {"value": SharePointLink}
+        try:
+            url = f"https://aktbob-external-api.grayglacier-2d22de15.northeurope.azurecontainerapps.io/Api/Podio/{PodioID}/SharepointmappeField"
+            headers = {
+                "ApiKey": ApiKey,
+                "Content-Type": "application/json"
+            }
+            json_body = {"value": SharePointLink}
 
-        response = requests.put(url, json=json_body, headers=headers)
-        
-        if response.status_code == 200:
-            print(f"Response Status: {response.status_code}")
-        else:
-            print(f"Error Status: {response.status_code}")
+            response = requests.put(url, json=json_body, headers=headers)
+            
+            print("Response Status:", response.status_code)
+            print("Response:", response.text)
+        except requests.exceptions.RequestException as e:
+            
+            raise Exception(f"Request to API failed: {e}")    
     
     def send_LinkToDeskpro(secure_link, password, deskpro_id):
-        # Define the URL
-        url = "https://aarhuskommune4.deskpro.com/api/v2/webhooks/A7O1H3HKEW76MAXA/invocation"
-        
-        # Calculate expiration date (current date + 30 days) and format it
-        expiration_date = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
-        # JSON payload
-        payload = {
-            "sharePointShareUrl": secure_link,
-            "Password": password,
-            "sharePointExpirationDate": expiration_date,
-            "deskproTicketId": deskpro_id
-        }
-        
-        # Headers
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
-        # Make the request
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        
-        # Handle the response
-        if response.status_code == 200:
+        try:
+            # Define the URL
+            url = "https://aarhuskommune4.deskpro.com/api/v2/webhooks/A7O1H3HKEW76MAXA/invocation"
+            
+            # Calculate expiration date (current date + 30 days) and format it
+            expiration_date = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
+            # JSON payload
+            payload = {
+                "sharePointShareUrl": secure_link,
+                "Password": password,
+                "sharePointExpirationDate": expiration_date,
+                "deskproTicketId": deskpro_id
+            }
+            
+            # Headers
+            headers = {
+                "Content-Type": "application/json"
+            }
+            
+            # Make the request
+            response = requests.post(url, headers=headers, data=json.dumps(payload))
+            
             print("Response Status:", response.status_code)
-        else:
-            print("Error Status:", response.status_code)
-            print("Error Response:", response.text)
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Request to API failed: {e} with status: {response.status_code}")    
+    
     
     # Fetch SharePoint folder link
     site_relative_path = "/Teams/tea-teamsite10506/Delte Dokumenter"
