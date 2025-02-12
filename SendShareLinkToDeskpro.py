@@ -86,8 +86,8 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
             print("Response Status:", response.status_code)
             print("Response:", response.text)
         except requests.exceptions.RequestException as e:
-            
-            raise Exception(f"Request to API failed: {e}")    
+            print("Failed")
+            #raise Exception(f"Request to API failed: {e}")    
     
     def send_LinkToDeskpro(secure_link, password, deskpro_id):
         try:

@@ -3,10 +3,6 @@ from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConn
 import os
 import requests
 from requests_ntlm import HttpNtlmAuth
-from email.message import EmailMessage
-
-import smtplib
-from io import BytesIO
 
 #Functions or scripts
 from GetKMDAcessToken import GetKMDToken
