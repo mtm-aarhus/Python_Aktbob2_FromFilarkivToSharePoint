@@ -65,9 +65,9 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     PodioID = queue.get("PodioID")
     Overmappe = queue.get("Overmappe")
     Undermappe = queue.get("Undermappe")
-    FilarkivCaseID = queue.get("FilarkivCaseID")
     GeoSag = queue.get("GeoSag")
     NovaSag = queue.get("NovaSag")
+    FilarkivCaseID = queue.get("FilarkivCaseID")
 
 
     # ---- Run "GetDokumentlist" ----sort
