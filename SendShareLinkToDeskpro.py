@@ -42,10 +42,10 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
             print(f"Authentication failed: {e}")
             raise
 
-    def get_sharepoint_folder_links(client: ClientContext, Overmappe: str, Undermappe: str, site_relative_path):
+    def get_sharepoint_folder_links(client: ClientContext, Overmappe: str, site_relative_path):
         """ Generates both public and password-protected SharePoint folder links. """
         try:
-            folder_url = f"{site_relative_path}/Aktindsigter/{Overmappe}/{Undermappe}"
+            folder_url = f"{site_relative_path}/Aktindsigter/{Overmappe}"
             folder = client.web.get_folder_by_server_relative_path(folder_url)
             client.load(folder)
             client.execute_query()
@@ -123,7 +123,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
 
 
     # Retrieve both links
-    public_link, secure_link, password = get_sharepoint_folder_links(client, Overmappe, Undermappe, site_relative_path)
+    public_link, secure_link, password = get_sharepoint_folder_links(client, Overmappe, site_relative_path)
     print(f"Public Shareable Link: {public_link}")
     print(f"Password-Protected Shareable Link: {secure_link}")
 
