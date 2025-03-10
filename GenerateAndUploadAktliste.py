@@ -93,7 +93,8 @@ def invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste):
                     if value and col_index == 1:  # Specific to "Filnavn" column
                         lines = textwrap.wrap(str(value), width=70)  # Adjust line wrap width
                         max_lines = max(max_lines, len(lines))
-
+                    if col_index == 4:  # Adjust height for DOKID
+                        worksheet.row_dimensions[row_index + 2].height = 20
                 # Dynamically adjust row height based on line count
                 worksheet.row_dimensions[row_index + 2].height = 15 * max_lines
 
@@ -199,8 +200,8 @@ def invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste):
             )
 
             # Column configuration
-            column_widths = [50, 150, 80, 70, 60, 60, 55, 70, 70, 100]
-            char_limits = [10, 30, 15, 12, 10, 10, 9, 12, 12, 20]
+            column_widths = [50, 150, 80, 70, 75, 55, 50, 65, 70, 100]
+            char_limits = [10, 30, 15, 12, 15, 10, 9, 12, 12, 20]
 
             headers = ["Akt ID", "Filnavn", "Kategori", "Dato", "Dok ID", "Bilag til Dok ID", 
                     "Bilag", "Omfattet af aktindsigt", "Gives der aktindsigt?", "Begrundelse"]
