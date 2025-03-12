@@ -15,7 +15,8 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
     import uuid
     import json
     from datetime import datetime
-
+    import mimetypes
+    
     # henter in_argumenter:
     dt_DocumentList = Arguments_GetDocumentsForAktliste.get("in_dt_Documentlist")
     CloudConvertAPI = Arguments_GetDocumentsForAktliste.get("in_CloudConvertAPI")
@@ -128,6 +129,23 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
             AktID = AktID
 
         Titel = str(row["Dokumenttitel"])
+        mimetypes.add_type("application/x-msmetafile", ".emz")
+        # Split title into name and extension
+        parts = Titel.rsplit('.', 1)  # Splits at the last dot
+        if len(parts) == 2:
+            name, ext = parts
+            # Check if it's a known file extension
+            if mimetypes.guess_type(f"file.{ext}")[0]:  
+                Titel = name  # Remove extension
+                print(f"Updated Titel (without filetype): {Titel}")
+            else:
+                print("No known filetype detected.")
+        else:
+            print("No file extension detected.")
+
+
+
+
         BilagTilDok = str(row["Bilag til Dok ID"])
         DokBilag = str(row["Bilag"])
         Dokumentkategori = str(row["Dokumentkategori"])
