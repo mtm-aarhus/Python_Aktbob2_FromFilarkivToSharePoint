@@ -61,7 +61,6 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                             if response.status_code == 200:
                                 with open(file_path, "wb") as f:
                                     f.write(response.content)
-                                print(f"Downloaded: {file_name} to {file_path}")
                                 downloaded_files.append(file_path)
                             else:
                                 print(f"Failed to download {file_name}: {response.status_code}")

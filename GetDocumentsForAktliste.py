@@ -137,9 +137,6 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
             # Check if it's a known file extension
             if mimetypes.guess_type(f"file.{ext}")[0]:  
                 Titel = name  # Remove extension
-                print(f"Updated Titel (without filetype): {Titel}")
-            else:
-                print("No known filetype detected.")
         else:
             print("No file extension detected.")
 
@@ -154,8 +151,6 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
         else:
             Dokumentdato = datetime.strptime(Dokumentdato, "%Y-%m-%d").strftime("%d-%m-%Y")
         # Dokumentdato = datetime.strptime(row["Dokumentdato"], "%d-%m-%Y").strftime("%d-%m-%Y")
-    
-        print(f"AktID til debug: {AktID}")
 
         # Declare the necessary variables
         base_path = "Teams/tea-teamsite10506/Delte dokumenter/Aktindsigter/"
