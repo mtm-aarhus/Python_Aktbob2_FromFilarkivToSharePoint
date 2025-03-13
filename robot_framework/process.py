@@ -92,7 +92,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     Sagstitel = GetDocumentList_Output_arguments.get("sagstitel")
     dt_DocumentList = GetDocumentList_Output_arguments.get("dt_DocumentList")
     DokumentlisteDatoString = GetDocumentList_Output_arguments.get("out_DokumentlisteDatoString")
-    print(f"dt_aktindex før: {dt_AktIndex}")
 
 
     # ---- Run "GetDocumentsForAktliste" ----
@@ -119,7 +118,8 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
 
     GetDocumentsForAktliste_Output_arguments = GetDocumentsForAktliste.invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste)
     dt_AktIndex = GetDocumentsForAktliste_Output_arguments.get("out_dt_AktIndex")
-    print(f"dt_aktindex efter: {dt_AktIndex}")
+    print(f"dt_aktindex før: {dt_AktIndex}")
+
 
     # ---- run DownloadFilesFromFilarkivAndUploadToSharePoint ----
 
@@ -141,7 +141,7 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     Test = DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments.get("out_Text")
     dt_AktIndex = DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments.get("dt_AktIndex")
     orchestrator_connection.log_trace(Test)
-
+    print(f"dt_aktindex efter: {dt_AktIndex}")  
     # ---- Run "Generate&UploadAktlistPDF" ----
 
     Arguments_GenerateAndUploadAktliste = {
