@@ -101,5 +101,5 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
 
 
     return {"out_Text": "Alle filer er downloaded og oploaded til Sharepoint",
-            "Out_dt_AktIndex": dt_AktIndex
+            "out_dt_AktIndex": dt_AktIndex
             }

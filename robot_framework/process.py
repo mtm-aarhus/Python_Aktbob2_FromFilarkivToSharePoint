@@ -139,7 +139,7 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
 
     DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments = DownloadFilesFromFilarkivAndUploadToSharePoint.invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint)
     Test = DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments.get("out_Text")
-    dt_AktIndex = DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments.get("dt_AktIndex")
+    dt_AktIndex = DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments.get("out_dt_AktIndex")
     orchestrator_connection.log_trace(Test)
     print(f"dt_aktindex efter: {dt_AktIndex}")  
     # ---- Run "Generate&UploadAktlistPDF" ----
