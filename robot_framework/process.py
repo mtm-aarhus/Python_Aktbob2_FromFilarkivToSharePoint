@@ -121,6 +121,27 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     dt_AktIndex = GetDocumentsForAktliste_Output_arguments.get("out_dt_AktIndex")
 
 
+    # ---- run DownloadFilesFromFilarkivAndUploadToSharePoint ----
+
+    Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint = {
+    "in_dt_AktIndex": dt_AktIndex,
+    "in_FilarkivURL": FilarkivURL,
+    "in_Filarkiv_access_token": Filarkiv_access_token,
+    "in_FilarkivCaseID": FilarkivCaseID,
+    "in_SharePointAppID": SharePointAppID,
+    "in_SharePointTenant": SharePointTenant,
+    "in_SharePointURL": SharePointURL,
+    "in_Overmappe": Overmappe,
+    "in_Undermappe": Undermappe,
+    "in_RobotUserName": RobotUserName,
+    "in_RobotPassword": RobotPassword
+    }
+
+    DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments = DownloadFilesFromFilarkivAndUploadToSharePoint.invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint)
+    Test = DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments.get("out_Text")
+    dt_AktIndex = DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments.get("dt_AktIndex")
+    orchestrator_connection.log_trace(Test)
+
     # ---- Run "Generate&UploadAktlistPDF" ----
 
     Arguments_GenerateAndUploadAktliste = {
@@ -142,27 +163,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     GenerateAndUploadAktliste_Output_arguments = GenerateAndUploadAktliste.invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste)
     Test = GenerateAndUploadAktliste_Output_arguments.get("out_Text")
     orchestrator_connection.log_trace(Test)
-
-    # ---- run DownloadFilesFromFilarkivAndUploadToSharePoint ----
-
-    Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint = {
-    "in_dt_AktIndex": dt_AktIndex,
-    "in_FilarkivURL": FilarkivURL,
-    "in_Filarkiv_access_token": Filarkiv_access_token,
-    "in_FilarkivCaseID": FilarkivCaseID,
-    "in_SharePointAppID": SharePointAppID,
-    "in_SharePointTenant": SharePointTenant,
-    "in_SharePointURL": SharePointURL,
-    "in_Overmappe": Overmappe,
-    "in_Undermappe": Undermappe,
-    "in_RobotUserName": RobotUserName,
-    "in_RobotPassword": RobotPassword
-    }
-
-    DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments = DownloadFilesFromFilarkivAndUploadToSharePoint.invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint)
-    Test = DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments.get("out_Text")
-    orchestrator_connection.log_trace(Test)
-
 
     ##---- run SendShareLinkToDeskpro ----##
 

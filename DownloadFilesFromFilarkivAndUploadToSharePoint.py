@@ -46,11 +46,13 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                 file_id = file["id"]
                 file_name = file["fileName"]
                 
-                file_basename = file_name.replace(".pdf", "")
+                file_basename = file_name.rsplit(".", 1)[0]
                 matching_rows = dt_AktIndex[dt_AktIndex["Filnavn"].str.contains(file_basename, na=False, regex=False)]
                 
-                for _, row in matching_rows.iterrows():
+                for index, row in matching_rows.iterrows():
                     if "Ja" in row["Gives der aktindsigt?"] or "Delvis" in row["Gives der aktindsigt?"]:
+                        dt_AktIndex.at[index, "Filnavn"] = f"{file_basename}.pdf"
+                        
                         download_url = f"{FilarkivURL}/FileIO/Download?fileId={file_id}"
                         file_path = os.path.join("C:\\Users", os.getlogin(), "Downloads", file_name)
                         
@@ -98,4 +100,6 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
         #delete_local_files(downloaded_files)
 
 
-    return {"out_Text": "Alle filer er downloaded og oploaded til Sharepoint"}
+    return {"out_Text": "Alle filer er downloaded og oploaded til Sharepoint",
+            "Out_dt_AktIndex": dt_AktIndex
+            }
