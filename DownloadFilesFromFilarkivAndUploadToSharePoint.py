@@ -96,7 +96,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
     downloaded_files = download_files()
     if downloaded_files:
         upload_files_to_sharepoint(downloaded_files)
-        #delete_local_files(downloaded_files)
+        delete_local_files(downloaded_files)
 
 
     return {"out_Text": "Alle filer er downloaded og oploaded til Sharepoint",

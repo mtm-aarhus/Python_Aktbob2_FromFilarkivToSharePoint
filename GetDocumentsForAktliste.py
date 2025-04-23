@@ -129,7 +129,7 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
             AktID = AktID
 
         Titel = str(row["Dokumenttitel"])
-        print(f"DokumentTitle: {Titel}")
+
         mimetypes.add_type("application/x-msmetafile", ".emz")
         # Split title into name and extension
         parts = Titel.rsplit('.', 1)  # Splits at the last dot
@@ -209,8 +209,6 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
         
 
         Titel = f"{AktID:04} - {DokumentID} - {Titel}.{DokumentType}"
-
-        print(f"NewTitel: {Titel}")
 
         # Parse and prepare data for the row
         row_to_add = {
