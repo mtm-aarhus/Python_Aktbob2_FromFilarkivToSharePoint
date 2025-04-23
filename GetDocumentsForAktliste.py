@@ -138,8 +138,6 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
             # Check if it's a known file extension
             if mimetypes.guess_type(f"file.{ext}")[0]:  
                 Titel = name  # Remove extension
-        else:
-            print("No file extension detected.")
 
         BilagTilDok = str(row["Bilag til Dok ID"])
         DokBilag = str(row["Bilag"])
@@ -211,6 +209,8 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
         
 
         Titel = f"{AktID:04} - {DokumentID} - {Titel}.{DokumentType}"
+
+        print(f"NewTitel: {Titel}")
 
         # Parse and prepare data for the row
         row_to_add = {
