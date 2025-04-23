@@ -129,6 +129,7 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
             AktID = AktID
 
         Titel = str(row["Dokumenttitel"])
+        print(f"DokumentTitle: {Titel}")
         mimetypes.add_type("application/x-msmetafile", ".emz")
         # Split title into name and extension
         parts = Titel.rsplit('.', 1)  # Splits at the last dot
@@ -201,10 +202,6 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
 
             try:
                 response = requests.put(url, headers=headers, json=payload)
-                if response.status_code == 200:
-                    print(response.status_code)
-                else:
-                    print("Failed to fetch Sagstitel from NOVA. Status Code:", response.status_code)
             except Exception as e:
                 raise Exception("Failed to fetch Sagstitel (Nova):", str(e))
 
