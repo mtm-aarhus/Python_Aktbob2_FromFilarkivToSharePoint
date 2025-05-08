@@ -95,7 +95,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
             url = "https://aarhuskommune4.deskpro.com/api/v2/webhooks/A7O1H3HKEW76MAXA/invocation"
             
             # Calculate expiration date (current date + 30 days) and format it
-            expiration_date = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
+            expiration_date = (datetime.now(timezone.utc) + timedelta(days=60)).strftime("%Y-%m-%d")
             # JSON payload
             payload = {
                 "sharePointShareUrl": secure_link,
