@@ -133,32 +133,28 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
     send_LinkToDeskpro(secure_link, password, DeskProID)
 
 
-    # Define email details
-    sender = "Aktbob<rpamtm001@aarhus.dk>" # Replace with actual sender
-    subject = f"Robotten er færdig med aktlisten for {Sagsnummer}"
+    # # Define email details
+    # sender = "Aktbob<rpamtm001@aarhus.dk>" # Replace with actual sender
+    # subject = f"{Sagsnummer}: Udleveringsmappe klar"
 
-    body = f"""
-        Du kan tilgå linket i Podio eller åbne det her: <a href="{public_link}">SharePoint</a>.<br><br>
-        Det anbefales at følge <a href="https://aarhuskommune.sharepoint.com/:w:/t/tea-teamsite10506/EVjuZhmtsHRGi6H7-COs26AB6afOXvReKSnWJ1XK1mKxZw?e=n03h0t/">vejledningen</a>, 
-        hvor du også finder svar på de fleste spørgsmål og fejltyper.<br><br>
-        Med venlig hilsen<br><br>
-        Teknik & Miljø<br><br>
-        Digitalisering<br><br>
-        Aarhus Kommune
-        """
-    smtp_server = "smtp.adm.aarhuskommune.dk"   # Replace with your SMTP server
-    smtp_port = 25                    # Replace with your SMTP port
+    # body = f"""
+    #     Du kan se udleveringsmappen her: <a href="{public_link}">SharePoint</a>.<br><br>
+    #     Det anbefales at følge <a href="https://aarhuskommune.sharepoint.com/:w:/t/tea-teamsite10506/EVjuZhmtsHRGi6H7-COs26AB6afOXvReKSnWJ1XK1mKxZw?e=n03h0t/">vejledningen</a>, 
+    #     hvor du også finder svar på de fleste spørgsmål og fejltyper.
+    #     """
+    # smtp_server = "smtp.adm.aarhuskommune.dk"  
+    # smtp_port = 25                   
 
-    # Call the send_email function
-    send_email(
-        receiver=MailModtager,
-        sender=sender,
-        subject=subject,
-        body=body,
-        smtp_server=smtp_server,
-        smtp_port=smtp_port,
-        html_body=True
-    )
+    # # Call the send_email function
+    # send_email(
+    #     receiver=MailModtager,
+    #     sender=sender,
+    #     subject=subject,
+    #     body=body,
+    #     smtp_server=smtp_server,
+    #     smtp_port=smtp_port,
+    #     html_body=True
+    # )
 
 
     return {"out_Text": "Delinger er blevet oprettet"}
