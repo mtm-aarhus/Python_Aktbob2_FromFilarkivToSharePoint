@@ -100,7 +100,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
             payload = {
                 "sharePointShareUrl": secure_link,
                 "Password": password,
-                "sharePointExpirationDate": expiration_date,
+                #"sharePointExpirationDate": expiration_date,
                 "deskproTicketId": deskpro_id
             }
             
