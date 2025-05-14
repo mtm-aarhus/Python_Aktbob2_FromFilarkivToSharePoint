@@ -134,7 +134,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
 
 
     # # Define email details
-    sender = "Aktbob<rpamtm001@aarhus.dk>" # Replace with actual sender
+    sender = "aktbob@noreply.dk" # Replace with actual sender
     subject = f"{Sagsnummer}: Udleveringsmappe klar"
 
     body = f"""
