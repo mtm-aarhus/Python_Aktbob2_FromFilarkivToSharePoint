@@ -34,11 +34,10 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                     document_list = response.json()
-                    return document_list
             else:
                 error_msg = f"Failed to fetch document list from Filarkiv. Status code: {response.status_code}"
                 raise Exception(error_msg)
-
+                
         except Exception as e:
             print("Exception occurred:", str(e))
 
@@ -65,6 +64,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                 smtp_port=smtp_port,
                 html_body=True
             )
+            return []
         
         downloaded_files = []
         
