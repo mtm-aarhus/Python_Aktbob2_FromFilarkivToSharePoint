@@ -251,7 +251,7 @@ def invoke(Arguments, go_Session):
         subject = f"{Sagsnummer} mangler dokumentliste"
         body = f"""Kære sagsbehandler,<br><br>
         Sagen: {Sagsnummer} mangler at få oprettet dokumentlisten. <br><br>
-        Få oprettet denne først, inden du forsøger steppet 'Overfør dokumenter til screeningsmappen'.<br><br>
+        Få oprettet denne først, inden du forsøger steppet 'Overfør dokumenter til udleveringsmappe (Sharepoint)'.<br><br>
         Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
         hvor du også finder svar på de fleste spørgsmål og fejltyper.
         """
