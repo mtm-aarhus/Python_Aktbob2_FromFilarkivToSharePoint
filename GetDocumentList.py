@@ -16,6 +16,8 @@ def invoke(Arguments, go_Session):
     from office365.runtime.auth.user_credential import UserCredential
     from urllib.parse import quote
     import re
+    from SendSMTPMail import send_email
+
 
     # Helper function for sanitizing sagstitel
     def sanitize_sagstitel(sagstitel):
@@ -50,7 +52,7 @@ def invoke(Arguments, go_Session):
     sagstitel = ""  # Default value if no title is retrieved
     Overmappe = Arguments.get("in_Overmappe")
     Undermappe = Arguments.get("in_Undermappe")
-
+    MailModtager= Arguments.get("in_MailModtager")
 
     # --- Check if it's a Geo-sag ---
     if GeoSag:
@@ -232,28 +234,45 @@ def invoke(Arguments, go_Session):
             newest_file_name = newest_file["FileName"]
             DokumentlisteDatoString = newest_file["DocumentDate"] 
             sharepoint_file_url = f"{undermappe_url}/{newest_file_name}"
-
             local_file_path = download_file_from_sharepoint(client, sharepoint_file_url)
 
         if local_file_path.endswith('.xlsx'):
-            try:
-                # Read Excel file into a Pandas DataFrame
-                dt_DocumentList = pd.read_excel(local_file_path)
-                os.remove(local_file_path)
-                # Return the DataFrame to be used later
-                return dt_DocumentList
-                
-            except Exception as e:
-                raise Exception(f"Failed to load Excel file: {e}")
+            # Read Excel file into a Pandas DataFrame
+            dt_DocumentList = pd.read_excel(local_file_path)
+            os.remove(local_file_path)
         else:
             print(f"Downloaded file is not an Excel file: {local_file_path}")
-            return None
-
     except Exception as e:
-        raise Exception(f"Error: {e}")
-    finally:
-        return {
-        "sagstitel": sagstitel,
-        "dt_DocumentList": dt_DocumentList,
-        "out_DokumentlisteDatoString": DokumentlisteDatoString
-        }
+        # --- HANDLE ERROR HERE ---
+        print("Failed - sender mail til sagsbehandler")  # Replace with email logic if needed
+    
+        # Define email details
+        sender = "aktbob@aarhus.dk" 
+        subject = f"{Sagsnummer} mangler dokumentliste"
+        body = f"""Kære sagsbehandler,<br><br>
+        Sagen: {Sagsnummer} mangler at få oprettet dokumentlisten. <br><br>
+        Få oprettet denne først, inden du forsøger steppet 'Overfør dokumenter til screeningsmappen'.<br><br>
+        Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
+        hvor du også finder svar på de fleste spørgsmål og fejltyper.
+        """
+        smtp_server = "smtp.adm.aarhuskommune.dk"   
+        smtp_port = 25               
+
+        # Call the send_email function
+        send_email(
+            receiver=MailModtager,
+            sender=sender,
+            subject=subject,
+            body=body,
+            smtp_server=smtp_server,
+            smtp_port=smtp_port,
+            html_body=True
+        )
+
+        return None
+
+    return {
+    "sagstitel": sagstitel,
+    "dt_DocumentList": dt_DocumentList,
+    "out_DokumentlisteDatoString": DokumentlisteDatoString
+    }
