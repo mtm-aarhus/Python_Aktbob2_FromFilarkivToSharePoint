@@ -168,7 +168,9 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     "in_Overmappe": Overmappe,
     "in_Undermappe": Undermappe,
     "in_RobotUserName": RobotUserName,
-    "in_RobotPassword": RobotPassword
+    "in_RobotPassword": RobotPassword,
+    "in_MailModtager": MailModtager,
+    "in_Sagsnummer": Sagsnummer
     }
 
     DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments = DownloadFilesFromFilarkivAndUploadToSharePoint.invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint)

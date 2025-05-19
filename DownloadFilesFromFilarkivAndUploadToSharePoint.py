@@ -6,6 +6,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
     import time
     from datetime import datetime
     from SharePointUploader import upload_file_to_sharepoint
+    from SendSMTPMail import send_email
 
     FilarkivURL = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_FilarkivURL")
     Filarkiv_access_token = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_Filarkiv_access_token")
@@ -18,7 +19,8 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
     Undermappe = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_Undermappe")
     RobotUserName = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_RobotUserName")
     RobotPassword = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_RobotPassword")
-
+    MailModtager= Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_MailModtager")
+    Sagsnummer = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_Sagsnummer")
 
     def download_files():
         url = f"{FilarkivURL}/Documents/CaseDocumentOverview?caseId={FilarkivCaseID}&pageIndex=1&pageSize=500"
@@ -31,13 +33,39 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
-                document_list = response.json()
+                    document_list = response.json()
+                    return document_list
             else:
-                print("Failed to fetch document list from Filarkiv:", response.status_code)
-                return []
+                error_msg = f"Failed to fetch document list from Filarkiv. Status code: {response.status_code}"
+                raise Exception(error_msg)
+
         except Exception as e:
-            print("Could not fetch document list from Filarkiv:", str(e))
-            return []
+            print("Exception occurred:", str(e))
+
+            # Define email details
+            sender = "aktbob@aarhus.dk"
+            subject = f"{Sagsnummer} mangler dokumentliste"
+            body = f"""Kære sagsbehandler,<br><br>
+            Sagen: {Sagsnummer} mangler at få oprettet dokumentlisten. <br><br>
+            Fejlbesked: {str(e)}<br><br>
+            Få oprettet denne først, inden du forsøger steppet 'Overfør dokumenter til screeningsmappen'.<br><br>
+            Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
+            hvor du også finder svar på de fleste spørgsmål og fejltyper.
+            """
+
+            smtp_server = "smtp.adm.aarhuskommune.dk"
+            smtp_port = 25
+
+            # Send the error notification
+            send_email(
+                receiver=MailModtager,
+                sender=sender,
+                subject=subject,
+                body=body,
+                smtp_server=smtp_server,
+                smtp_port=smtp_port,
+                html_body=True
+            )
         
         downloaded_files = []
         
