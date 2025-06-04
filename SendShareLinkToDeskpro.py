@@ -140,7 +140,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
 
     body = f"""
         
-        Sag: <a href="https://mtmsager.aarhuskommune.dk/app#/t/ticket/{Overmappe}">{Overmappe} - {DeskProTitel}</a><br><br>
+        Sag: <a href="https://mtmsager.aarhuskommune.dk/app#/t/ticket/{DeskProID}">{Overmappe}</a><br><br>
         Du kan se udleveringsmappen her: <a href="{public_link}">SharePoint</a>.<br><br>
         Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
         hvor du også finder svar på de fleste spørgsmål og fejltyper.
