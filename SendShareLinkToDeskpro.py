@@ -23,6 +23,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
     PodioID = Arguments_SendShareLinkToDeskpro.get("in_PodioID")
     AktbobAPIKey = Arguments_SendShareLinkToDeskpro.get("in_AktbobAPIKey")
     DeskProID = Arguments_SendShareLinkToDeskpro.get("in_DeskProID")
+    DeskProTitel = Arguments_SendShareLinkToDeskpro.get("in_DeskProTitel")
     MailModtager = Arguments_SendShareLinkToDeskpro.get("in_MailModtager")
     Sagsnummer = Arguments_SendShareLinkToDeskpro.get("in_Sagsnummer")
 
@@ -138,7 +139,8 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
     subject = f"{Sagsnummer}: Udleveringsmappe klar"
 
     body = f"""
-        Sag: {Overmappe} <br><br>
+        
+        Sag: <a href="https://mtmsager.aarhuskommune.dk/app#/t/ticket/{Overmappe}">{Overmappe} - {DeskProTitel}</a><br><br>
         Du kan se udleveringsmappen her: <a href="{public_link}">SharePoint</a>.<br><br>
         Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
         hvor du også finder svar på de fleste spørgsmål og fejltyper.

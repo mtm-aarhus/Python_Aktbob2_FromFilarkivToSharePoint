@@ -213,6 +213,7 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     "in_PodioID": PodioID,
     "in_AktbobAPIKey": AktbobAPIKey,
     "in_DeskProID": DeskProID,
+    "in_DeskProTitel": DeskProTitel,
     "in_MailModtager": MailModtager,
     "in_Sagsnummer": Sagsnummer
     }
