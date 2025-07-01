@@ -1,61 +1,86 @@
-# Robot-Framework V3
 
-This repo is meant to be used as a template for robots made for [OpenOrchestrator](https://github.com/itk-dev-rpa/OpenOrchestrator).
+# 📄 README
 
-## Quick start
+## Aktbob Delivery Robot
 
-1. To use this template simply use this repo as a template (see [Creating a repository from a template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)).
-__Don't__ include all branches.
+**Aktbob Delivery** is an automation for **Teknik og Miljø, Aarhus Kommune**. It retrieves documents from Filarkiv and SharePoint, generates indexes (aktlister), uploads files to delivery folders, and notifies stakeholders when access-to-records deliveries are ready.
 
-2. Go to `robot_framework/__main__.py` and choose between the linear framework or queue based framework.
+---
 
-3. Implement all functions in the files:
-    * `robot_framework/initialize.py`
-    * `robot_framework/reset.py`
-    * `robot_framework/process.py`
+## 🚀 Features
 
-4. Change `config.py` to your needs.
+✅ **Document Retrieval**
+- Fetches document lists from SharePoint and Filarkiv
+- Validates presence of documents before processing
 
-5. Fill out the dependencies in the `pyproject.toml` file with all packages needed by the robot.
+📄 **Aktliste Generation**
+- Creates Excel and PDF indexes summarizing the delivered documents
+- Auto-formats headers, tables, and date fields
 
-6. Feel free to add more files as needed. Remember that any additional python files must
-be located in the folder `robot_framework` or a subfolder of it.
+📤 **Automated Uploads**
+- Uploads all prepared files to SharePoint delivery folders
+- Handles large files via chunked uploads
 
-When the robot is run from OpenOrchestrator the `main.py` file is run which results
-in the following:
-1. The working directory is changed to where `main.py` is located.
-2. A virtual environment is automatically setup with the required packages.
-3. The framework is called passing on all arguments needed by [OpenOrchestrator](https://github.com/itk-dev-rpa/OpenOrchestrator).
+🔗 **Link Sharing**
+- Generates public and secure SharePoint links to delivery folders
+- Updates Deskpro tickets and Podio records with generated links
 
-## Requirements
-Minimum python version 3.10
+📧 **Notifications**
+- Sends emails to caseworkers if document lists are empty or errors occur
+- Notifies recipients when deliveries are complete
 
-## Flow
+🔐 **Credential Management**
+- Fetches and refreshes API tokens (KMD and Filarkiv)
+- All credentials are stored securely in OpenOrchestrator
 
-This framework contains two different flows: A linear and a queue based.
-You should only ever use one at a time. You choose which one by going into `robot_framework/__main__.py`
-and uncommenting the framework you want. They are both disabled by default and an error will be
-raised to remind you if you don't choose.
+---
 
-### Linear Flow
+## 🧭 Process Flow
 
-The linear framework is used when a robot is just going from A to Z without fetching jobs from an
-OpenOrchestrator queue.
-The flow of the linear framework is sketched up in the following illustration:
+1. **Token Management**
+   - Fetches or refreshes KMD and Filarkiv access tokens (`GetKMDAcessToken.py`, `GetFilarkivToken.py`)
+2. **Document List Retrieval**
+   - Downloads metadata and file lists for the selected case (`GetDocumentList.py`)
+   - Stops processing if no documents are found
+3. **Document Preparation**
+   - Downloads and filters documents from Filarkiv (`DownloadFilesFromFilarkivAndUploadToSharePoint.py`)
+   - Generates the Excel Aktliste (`GenerateAndUploadAktliste.py`)
+4. **Upload to SharePoint**
+   - Uploads all processed documents and indexes to the target delivery folder
+5. **Share Link Generation**
+   - Creates public and password-protected SharePoint links (`SendShareLinkToDeskpro.py`)
+   - Updates Deskpro tickets and Podio records
+6. **Notifications**
+   - Sends confirmation emails with links to stakeholders
+   - Logs all actions in OpenOrchestrator
 
-![Linear Flow diagram](Robot-Framework.svg)
+---
 
-### Queue Flow
+## 🔐 Privacy & Security
 
-The queue framework is used when the robot is doing multiple bite-sized tasks defined in an
-OpenOrchestrator queue.
-The flow of the queue framework is sketched up in the following illustration:
+- All APIs use HTTPS
+- Credentials and tokens are managed securely in OpenOrchestrator
+- No personal data is stored locally after processing
+- Temporary files are removed after uploads
 
-![Queue Flow diagram](Robot-Queue-Framework.svg)
+---
 
-## Linting and Github Actions
+## ⚙️ Dependencies
 
-This template is also setup with flake8 and pylint linting in Github Actions.
-This workflow will trigger whenever you push your code to Github.
-The workflow is defined under `.github/workflows/Linting.yml`.
+- Python 3.10+
+- `requests`
+- `requests-ntlm`
+- `pandas`
+- `pyodbc`
+- `openpyxl`
+- `reportlab`
+- `office365-rest-python-client`
+- `msal`
+- `smtplib`
 
+---
+
+## 👷 Maintainer
+
+Gustav Chatterton  
+*Digital udvikling, Teknik og Miljø, Aarhus Kommune*
