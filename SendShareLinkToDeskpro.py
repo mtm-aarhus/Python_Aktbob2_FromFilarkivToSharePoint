@@ -187,36 +187,36 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
         upload_sharepoint_link_to_podio(PodioID, AktbobAPIKey, public_link)
         
         send_LinkToDeskpro(secure_link, password, DeskProID)
+        
+        # # Define email details
+        sender = "aktbob@aarhus.dk" # Replace with actual sender
+        subject = f"{Sagsnummer}: Udleveringsmappe klar"
+
+        body = f"""
+            
+            Sag: <a href="https://mtmsager.aarhuskommune.dk/app#/t/ticket/{DeskProID}">{Overmappe}</a><br><br>
+            Du kan se udleveringsmappen her: <a href="{public_link}">SharePoint</a>.<br><br>
+            Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
+            hvor du også finder svar på de fleste spørgsmål og fejltyper.
+            """
+        smtp_server = "smtp.adm.aarhuskommune.dk"  
+        smtp_port = 25                   
+
+        # Call the send_email function
+        send_email(
+            receiver=MailModtager,
+            sender=sender,
+            subject=subject,
+            body=body,
+            smtp_server=smtp_server,
+            smtp_port=smtp_port,
+            html_body=True
+        )
 
     else:
         print("No need to generate a new SharePoint link.")
 
 
-
-    # # Define email details
-    sender = "aktbob@aarhus.dk" # Replace with actual sender
-    subject = f"{Sagsnummer}: Udleveringsmappe klar"
-
-    body = f"""
-        
-        Sag: <a href="https://mtmsager.aarhuskommune.dk/app#/t/ticket/{DeskProID}">{Overmappe}</a><br><br>
-        Du kan se udleveringsmappen her: <a href="{public_link}">SharePoint</a>.<br><br>
-        Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
-        hvor du også finder svar på de fleste spørgsmål og fejltyper.
-        """
-    smtp_server = "smtp.adm.aarhuskommune.dk"  
-    smtp_port = 25                   
-
-    # Call the send_email function
-    send_email(
-        receiver=MailModtager,
-        sender=sender,
-        subject=subject,
-        body=body,
-        smtp_server=smtp_server,
-        smtp_port=smtp_port,
-        html_body=True
-    )
 
 
     return {"out_Text": "Delinger er blevet oprettet"}
