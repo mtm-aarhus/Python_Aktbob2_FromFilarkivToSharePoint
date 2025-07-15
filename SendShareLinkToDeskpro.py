@@ -145,7 +145,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
 
         data = response.json()
         fields = data.get("data", {}).get("fields", {})
-
+        now = datetime.now(timezone.utc)
         # Get values from field 110 and 134
         sharepoint_link = fields.get("110", {}).get("value", "")
         receive_data_str = fields.get("134", {}).get("value", "")
@@ -158,7 +158,8 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
             # SharePoint link exists → now check the age of ReceiveData
             try:
                 receive_data_date = datetime.strptime(receive_data_str, "%Y-%m-%dT%H:%M:%S%z")
-                if datetime.now() - receive_data_date > timedelta(days=14):
+                print(f"Receivedate: {receive_data_str}")
+                if now - receive_data_date > timedelta(days=14):
                     GenerateSharePointLink = True
                 else:
                     GenerateSharePointLink = False
