@@ -1,4 +1,5 @@
-def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
+from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
+def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator_connection: OrchestratorConnection):
     from office365.sharepoint.client_context import ClientContext
     from office365.sharepoint.sharing.role import Role
     from office365.sharepoint.sharing.user_role_assignment import UserRoleAssignment
@@ -11,7 +12,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
     from SendSMTPMail import send_email
     import random
     import string
-
+    
 
     SharePointAppID = Arguments_SendShareLinkToDeskpro.get("in_SharePointAppID")
     SharePointTenant = Arguments_SendShareLinkToDeskpro.get("in_SharePointTenant")
@@ -26,6 +27,9 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
     DeskProTitel = Arguments_SendShareLinkToDeskpro.get("in_DeskProTitel")
     MailModtager = Arguments_SendShareLinkToDeskpro.get("in_MailModtager")
     Sagsnummer = Arguments_SendShareLinkToDeskpro.get("in_Sagsnummer")
+
+    DeskProAPI = orchestrator_connection.get_credential("DeskProAPI") #Credential
+    DeskProAPIKey = DeskProAPI.password  
 
 
     def sharepoint_client(RobotUserName, RobotPassword, SharePointUrl) -> ClientContext:
@@ -118,20 +122,75 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro):
             raise Exception(f"Request to API failed: {e} with status: {response.status_code}")    
     
     
-    # Fetch SharePoint folder link
-    site_relative_path = "/Teams/tea-teamsite10506/Delte Dokumenter"
-    client = sharepoint_client(RobotUserName, RobotPassword, SharePointURL)
 
 
-    # Retrieve both links
-    public_link, secure_link, password = get_sharepoint_folder_links(client, Overmappe, site_relative_path)
-    print(f"Public Shareable Link: {public_link}")
-    print(f"Password-Protected Shareable Link: {secure_link}")
+
+    ### ---- Henter deskpro info: --- ####
+
+    Deskprourl = f"https://mtmsager.aarhuskommune.dk/api/v2/tickets/{DeskProID}"
+
+    headers = {
+        'Authorization': DeskProAPIKey,
+        'Cookie': 'dp_last_lang=da'
+    }
+
+    # Initialize flag
+    GenerateSharePointLink = False
+
+    try:
+        response = requests.get(Deskprourl, headers=headers)
+
+        if response.status_code != 200:
+            raise Exception(f"Request failed with status code {response.status_code}: {response.text}")
+
+        data = response.json()
+        fields = data.get("data", {}).get("fields", {})
+
+        # Get values from field 110 and 134
+        sharepoint_link = fields.get("110", {}).get("value", "")
+        receive_data_str = fields.get("134", {}).get("value", "")
+
+        # If no SharePoint link exists → we must generate one
+        if not isinstance(sharepoint_link, str) or not sharepoint_link.strip():
+            GenerateSharePointLink = True
+
+        else:
+            # SharePoint link exists → now check the age of ReceiveData
+            try:
+                receive_data_date = datetime.strptime(receive_data_str, "%B %d, %Y")
+                if datetime.now() - receive_data_date > timedelta(days=14):
+                    GenerateSharePointLink = True
+                else:
+                    GenerateSharePointLink = False
+            except ValueError:
+                print(f"Invalid date format in field 134: {receive_data_str}")
+                GenerateSharePointLink = False
+
+    except Exception as e:
+        print(f"Error retrieving ticket data: {e}")
+        GenerateSharePointLink = False
+
+    if GenerateSharePointLink:
+        print("Generating a new SharePoint link...")
+        
+        # Fetch SharePoint folder link
+        site_relative_path = "/Teams/tea-teamsite10506/Delte Dokumenter"
+        client = sharepoint_client(RobotUserName, RobotPassword, SharePointURL)
 
 
-    upload_sharepoint_link_to_podio(PodioID, AktbobAPIKey, public_link)
-    
-    send_LinkToDeskpro(secure_link, password, DeskProID)
+        # Retrieve both links
+        public_link, secure_link, password = get_sharepoint_folder_links(client, Overmappe, site_relative_path)
+        print(f"Public Shareable Link: {public_link}")
+        print(f"Password-Protected Shareable Link: {secure_link}")
+
+
+        upload_sharepoint_link_to_podio(PodioID, AktbobAPIKey, public_link)
+        
+        send_LinkToDeskpro(secure_link, password, DeskProID)
+
+    else:
+        print("No need to generate a new SharePoint link.")
+
 
 
     # # Define email details

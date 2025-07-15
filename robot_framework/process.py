@@ -219,6 +219,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     }
      
 
-    SendShareLinkToDeskpro_Output_arguments = SendShareLinkToDeskpro.invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro)
+    SendShareLinkToDeskpro_Output_arguments = SendShareLinkToDeskpro.invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro,orchestrator_connection)
     Test = SendShareLinkToDeskpro_Output_arguments.get("out_Text")
     orchestrator_connection.log_trace(Test)
