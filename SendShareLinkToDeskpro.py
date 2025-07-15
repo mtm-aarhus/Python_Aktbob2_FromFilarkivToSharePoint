@@ -157,7 +157,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
         else:
             # SharePoint link exists → now check the age of ReceiveData
             try:
-                receive_data_date = datetime.strptime(receive_data_str, "%B %d, %Y")
+                receive_data_date = datetime.strptime(receive_data_str, "%Y-%m-%dT%H:%M:%S%z")
                 if datetime.now() - receive_data_date > timedelta(days=14):
                     GenerateSharePointLink = True
                 else:
