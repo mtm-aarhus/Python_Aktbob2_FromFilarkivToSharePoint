@@ -61,7 +61,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
 
             # Generate a password-protected link
             #expiration_date = (datetime.utcnow() + timedelta(days=60)).isoformat() + "Z"
-            expiration_date = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%S%z")
+            expiration_date = (datetime.now(timezone.utc) + timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%S%z")
             characters = string.ascii_letters + string.digits 
             password = ''.join(random.choices(characters, k=6))
             secure_link_result = folder.share_link(
