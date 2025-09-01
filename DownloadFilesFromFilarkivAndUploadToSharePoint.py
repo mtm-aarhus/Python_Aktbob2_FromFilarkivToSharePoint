@@ -74,7 +74,9 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                 file_name = file["fileName"]
                 
                 file_basename = file_name.rsplit(".", 1)[0]
-                matching_rows = dt_AktIndex[dt_AktIndex["Filnavn"].str.contains(file_basename, na=False, regex=False)]
+                akt_id_from_file = str(int(file_name[:4]))
+                matching_rows = dt_AktIndex[dt_AktIndex["Akt ID"].astype(str) == akt_id_from_file]
+                if matching_rows.empty: raise ValueError(f"No matching row for Akt ID {akt_id_from_file}")
                 
                 for index, row in matching_rows.iterrows():
                     if "Ja" in row["Gives der aktindsigt?"] or "Delvis" in row["Gives der aktindsigt?"]:
@@ -109,7 +111,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                 )
 
             except Exception as e:
-                print(f"Error uploading {file_path}: {str(e)}")
+                raise Exception(f"Error uploading {file_path}: {str(e)}")
 
     def delete_local_files(files):
         for file_path in files:
