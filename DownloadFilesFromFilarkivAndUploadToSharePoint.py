@@ -112,7 +112,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                 )
 
             except Exception as e:
-                raise Exception(f"Error uploading {file_path}: {str(e)}")
+                raise Exception(f"Error uploading {file_path}: {e}")
 
     def delete_local_files(files):
         for file_path in files:
