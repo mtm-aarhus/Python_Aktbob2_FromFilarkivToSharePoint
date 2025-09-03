@@ -69,6 +69,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
         downloaded_files = []
         
         for document in document_list:
+            documentreference = str(document.get('documentReference', None)) #Checking for doc id, which we gave the document at upload
             for file in document.get("files", []):
                 file_id = file["id"]
                 file_name = file["fileName"]
@@ -76,7 +77,10 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                 file_basename = file_name.rsplit(".", 1)[0]
                 # akt_id_from_file = str(int(file_name[:4]))
                 # matching_rows = dt_AktIndex[dt_AktIndex["Akt ID"].astype(str) == akt_id_from_file]
-                matching_rows = dt_AktIndex[dt_AktIndex["Filnavn"].str.contains(file_basename, na=False, regex=False)]
+                if documentreference:
+                    matching_rows = dt_AktIndex[dt_AktIndex["Dok ID"].str.contains(documentreference, na=False, regex=False)]
+                if not documentreference: #matching at name if there is no doc id to avoid errors in the transition period
+                    matching_rows = dt_AktIndex[dt_AktIndex["Filnavn"].str.contains(file_basename, na=False, regex=False)]
                 if matching_rows.empty: raise ValueError(f"No matching row for dokumenttitle {file_basename}")
                 
                 for index, row in matching_rows.iterrows():
