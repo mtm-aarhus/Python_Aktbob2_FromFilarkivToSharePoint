@@ -23,6 +23,9 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     """Do the primary process of the robot."""
     orchestrator_connection.log_trace("Running process.")
 
+    certification = orchestrator_connection.get_credential("SharePointCert")
+    api = orchestrator_connection.get_credential("SharePointAPI")
+    
     GraphAppIDAndTenant = orchestrator_connection.get_credential("GraphAppIDAndTenant")
     SharePointAppID = GraphAppIDAndTenant.username
     SharePointTenant = GraphAppIDAndTenant.password
@@ -40,7 +43,10 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     FilarkivURL = orchestrator_connection.get_constant("FilarkivURL").value
     AktbobAPI = orchestrator_connection.get_credential("AktbobAPIKey")
     AktbobAPIKey = AktbobAPI.password
-
+    tenant = api.username
+    client_id = api.password
+    thumbprint = certification.username
+    cert_path = certification.password
     # ---- Henter access tokens ----
     KMD_access_token = GetKMDToken(orchestrator_connection)
     Filarkiv_access_token = GetFilarkivToken(orchestrator_connection)
@@ -85,7 +91,11 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
         "GoPassword":  GoPassword,
         "KMD_access_token": KMD_access_token,
         "KMDNovaURL": KMDNovaURL,
-        "in_MailModtager": MailModtager
+        "in_MailModtager": MailModtager,
+        "tenant": tenant,
+        "client_id": client_id,
+        "thumbprint": thumbprint,
+        "cert_path": cert_path
     }
 
 
@@ -147,7 +157,11 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
         "in_NovaToken": KMD_access_token,
         "in_KMDNovaURL": KMDNovaURL,
         "in_GoUsername": GoUsername,
-        "in_GoPassword":  GoPassword
+        "in_GoPassword":  GoPassword,
+        "tenant": tenant,
+        "client_id": client_id,
+        "thumbprint": thumbprint,
+        "cert_path": cert_path
     }
 
     GetDocumentsForAktliste_Output_arguments = GetDocumentsForAktliste.invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste)
@@ -170,7 +184,11 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     "in_RobotUserName": RobotUserName,
     "in_RobotPassword": RobotPassword,
     "in_MailModtager": MailModtager,
-    "in_Sagsnummer": Sagsnummer
+    "in_Sagsnummer": Sagsnummer,
+    "tenant": tenant,
+    "client_id": client_id,
+    "thumbprint": thumbprint,
+    "cert_path": cert_path
     }
 
     DownloadFilesFromFilarkivAndUploadToSharePoint_Output_arguments = DownloadFilesFromFilarkivAndUploadToSharePoint.invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint)
@@ -192,7 +210,11 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     "in_Undermappe": Undermappe,
     "in_SharePointURL": SharePointURL,
     "in_GoUsername":GoUsername,
-    "in_GoPassword": GoPassword
+    "in_GoPassword": GoPassword,
+    "tenant": tenant,
+    "client_id": client_id,
+    "thumbprint": thumbprint,
+    "cert_path": cert_path
     }
 
     GenerateAndUploadAktliste_Output_arguments = GenerateAndUploadAktliste.invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste)
@@ -215,7 +237,11 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     "in_DeskProID": DeskProID,
     "in_DeskProTitel": DeskProTitel,
     "in_MailModtager": MailModtager,
-    "in_Sagsnummer": Sagsnummer
+    "in_Sagsnummer": Sagsnummer,
+    "tenant": tenant,
+    "client_id": client_id,
+    "thumbprint": thumbprint,
+    "cert_path": cert_path
     }
      
 
