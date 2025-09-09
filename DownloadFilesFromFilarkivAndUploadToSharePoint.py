@@ -26,7 +26,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
     tenant = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("tenant")
     client_id = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("client_id")
     thumbprint = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("thumbprint")
-    cert_path = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("cert_parth")
+    cert_path = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("cert_path")
     
     cert_credentials = {
         "tenant": tenant,
@@ -130,7 +130,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                     Overmappe=Overmappe,
                     Undermappe=Undermappe,
                     file_path=file_path,
-                    ctx
+                    ctx = ctx
                 )
 
             except Exception as e:

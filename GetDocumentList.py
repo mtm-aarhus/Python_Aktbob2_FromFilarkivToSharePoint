@@ -56,7 +56,7 @@ def invoke(Arguments, go_Session):
     tenant = Arguments.get("tenant")
     client_id = Arguments.get("client_id")
     thumbprint = Arguments.get("thumbprint")
-    cert_path = Arguments.get("cert_parth")
+    cert_path = Arguments.get("cert_path")
 
     # --- Check if it's a Geo-sag ---
     if GeoSag:
@@ -180,10 +180,10 @@ def invoke(Arguments, go_Session):
     # Main logic
     try:
         # Authenticate to SharePoint
-            tenant = Arguments.get("tenant")
-    client_id = Arguments.get("client_id")
-    thumbprint = Arguments.get("thumbprint")
-    cert_path = Arguments.get("cert_parth")
+        tenant = Arguments.get("tenant")
+        client_id = Arguments.get("client_id")
+        thumbprint = Arguments.get("thumbprint")
+        cert_path = Arguments.get("cert_path")
 
         client = sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointUrl)
 

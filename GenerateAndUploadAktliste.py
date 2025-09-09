@@ -16,9 +16,9 @@ def invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste):
     from openpyxl.worksheet.table import Table, TableStyleInfo
     from openpyxl.worksheet.dimensions import ColumnDimension
     from PIL import ImageFont  
+    from office365.sharepoint.client_context import ClientContext
     import textwrap
     import math
-    from GetDocumentList import sharepoint_client
     import reportlab
     # ReportLab Imports
     from reportlab.pdfgen import canvas as reportlab_canvas
@@ -47,10 +47,20 @@ def invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste):
     tenant = Arguments_GenerateAndUploadAktliste.get("tenant")
     client_id = Arguments_GenerateAndUploadAktliste.get("client_id")
     thumbprint = Arguments_GenerateAndUploadAktliste.get("thumbprint")
-    cert_path = Arguments_GenerateAndUploadAktliste.get("cert_parth")
+    cert_path = Arguments_GenerateAndUploadAktliste.get("cert_path")
     
-    ctx = sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointURL)
-    
+    cert_credentials = {
+        "tenant": tenant,
+        "client_id": client_id,
+        "thumbprint": thumbprint,
+        "cert_path": cert_path
+    }
+    ctx = ClientContext(SharePointURL).with_client_certificate(**cert_credentials)
+
+    # Load the SharePoint web to test the connection
+    web = ctx.web
+    ctx.load(web)
+    ctx.execute_query()
 
     def create_excel(data_table, file_path):
         try:
@@ -149,7 +159,7 @@ def invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste):
         Overmappe=Overmappe,
         Undermappe=Undermappe,
         file_path=file_path,
-        ctx
+        ctx = ctx
     )
 
 
@@ -326,7 +336,7 @@ def invoke_GenerateAndUploadAktliste(Arguments_GenerateAndUploadAktliste):
         Overmappe=Overmappe,
         Undermappe=Undermappe,
         file_path=pdf_path,
-        ctx
+        ctx = ctx
     )
 
     #Deleting local files: 

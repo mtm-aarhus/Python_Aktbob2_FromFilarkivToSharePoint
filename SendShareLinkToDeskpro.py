@@ -30,7 +30,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
     tenant = Arguments_SendShareLinkToDeskpro.get("tenant")
     client_id = Arguments_SendShareLinkToDeskpro.get("client_id")
     thumbprint = Arguments_SendShareLinkToDeskpro.get("thumbprint")
-    cert_path = Arguments_SendShareLinkToDeskpro.get("cert_parth")
+    cert_path = Arguments_SendShareLinkToDeskpro.get("cert_path")
 
     DeskProAPI = orchestrator_connection.get_credential("DeskProAPI") #Credential
     DeskProAPIKey = DeskProAPI.password  
