@@ -27,25 +27,32 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
     DeskProTitel = Arguments_SendShareLinkToDeskpro.get("in_DeskProTitel")
     MailModtager = Arguments_SendShareLinkToDeskpro.get("in_MailModtager")
     Sagsnummer = Arguments_SendShareLinkToDeskpro.get("in_Sagsnummer")
+    tenant = Arguments_SendShareLinkToDeskpro.get("tenant")
+    client_id = Arguments_SendShareLinkToDeskpro.get("client_id")
+    thumbprint = Arguments_SendShareLinkToDeskpro.get("thumbprint")
+    cert_path = Arguments_SendShareLinkToDeskpro.get("cert_parth")
 
     DeskProAPI = orchestrator_connection.get_credential("DeskProAPI") #Credential
     DeskProAPIKey = DeskProAPI.password  
-
-
-    def sharepoint_client(RobotUserName, RobotPassword, SharePointUrl) -> ClientContext:
+    
+    def sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointUrl) -> ClientContext:
         try:
-            credentials = UserCredential(RobotUserName, RobotPassword)
-            ctx = ClientContext(SharePointUrl).with_credentials(credentials)
-
+            cert_credentials = {
+                "tenant": tenant,
+                "client_id": client_id,
+                "thumbprint": thumbprint,
+                "cert_path": cert_path
+            }
+            ctx = ClientContext(SharePointUrl).with_client_certificate(**cert_credentials)
+        
             # Load the SharePoint web to test the connection
             web = ctx.web
             ctx.load(web)
             ctx.execute_query()
-
+        
             return ctx
         except Exception as e:
-            print(f"Authentication failed: {e}")
-            raise
+            raise Exception(f"Authentication failed: {e}")
 
     def get_sharepoint_folder_links(client: ClientContext, Overmappe: str, site_relative_path):
         """ Generates both public and password-protected SharePoint folder links. """
@@ -176,7 +183,7 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
         
         # Fetch SharePoint folder link
         site_relative_path = "/Teams/tea-teamsite10506/Delte Dokumenter"
-        client = sharepoint_client(RobotUserName, RobotPassword, SharePointURL)
+        client = sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointURL)
 
 
         # Retrieve both links
