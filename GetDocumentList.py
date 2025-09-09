@@ -131,10 +131,15 @@ def invoke(Arguments, go_Session):
 
 
     # SharePoint authentication and client setup
-    def sharepoint_client(RobotUserName, RobotPassword, SharePointUrl) -> ClientContext:
+    def sharepoint_client(tenant, client_id, thumbprint, cert_path) -> ClientContext:
         try:
-            credentials = UserCredential(RobotUserName, RobotPassword)
-            ctx = ClientContext(SharePointUrl).with_credentials(credentials)
+            cert_credentials = {
+                "tenant": tenant,
+                "client_id": client_id,
+                "thumbprint": thumbprint,
+                "cert_path": cert_path
+            }
+            ctx = ClientContext(sharepoint_site).with_client_certificate(**cert_credentials)
 
             # Load the SharePoint web to test the connection
             web = ctx.web
