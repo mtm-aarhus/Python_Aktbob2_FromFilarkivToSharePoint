@@ -7,6 +7,8 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
     from datetime import datetime
     from SharePointUploader import upload_file_to_sharepoint
     from SendSMTPMail import send_email
+    from office365.sharepoint.client_context import ClientContext
+
 
     FilarkivURL = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_FilarkivURL")
     Filarkiv_access_token = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_Filarkiv_access_token")
@@ -21,7 +23,24 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
     RobotPassword = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_RobotPassword")
     MailModtager= Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_MailModtager")
     Sagsnummer = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("in_Sagsnummer")
+    tenant = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("tenant")
+    client_id = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("client_id")
+    thumbprint = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("thumbprint")
+    cert_path = Arguments_DownloadFilesFromFilarkivAndUploadToSharePoint.get("cert_parth")
+    
+    cert_credentials = {
+        "tenant": tenant,
+        "client_id": client_id,
+        "thumbprint": thumbprint,
+        "cert_path": cert_path
+    }
+    ctx = ClientContext(SharePointURL).with_client_certificate(**cert_credentials)
 
+    # Load the SharePoint web to test the connection
+    web = ctx.web
+    ctx.load(web)
+    ctx.execute_query()
+    
     def download_files():
         url = f"{FilarkivURL}/Documents/CaseDocumentOverview?caseId={FilarkivCaseID}&pageIndex=1&pageSize=500"
         
@@ -111,8 +130,7 @@ def invoke_DownloadFilesFromFilarkivAndUploadToSharePoint(Arguments_DownloadFile
                     Overmappe=Overmappe,
                     Undermappe=Undermappe,
                     file_path=file_path,
-                    RobotUserName=RobotUserName,
-                    RobotPassword=RobotPassword
+                    ctx
                 )
 
             except Exception as e:
