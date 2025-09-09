@@ -2,11 +2,8 @@ import os
 from office365.sharepoint.client_context import ClientContext
 from office365.runtime.auth.user_credential import UserCredential
 
-def upload_file_to_sharepoint(site_url,Overmappe, Undermappe, file_path, RobotUserName, RobotPassword):
+def upload_file_to_sharepoint(site_url,Overmappe, Undermappe, file_path, ctx):
     try:
-        # Authenticate
-        credentials = UserCredential(RobotUserName, RobotPassword)
-        ctx = ClientContext(site_url).with_credentials(credentials)
 
         # Construct folder path
         folder_url = f"/Teams/tea-teamsite10506/Delte Dokumenter/Aktindsigter/{Overmappe}/{Undermappe}"
