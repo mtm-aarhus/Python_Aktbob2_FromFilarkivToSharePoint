@@ -1,62 +1,44 @@
-def invoke(Arguments, go_Session): 
-    import requests
-    import uuid
-    import re
-    import html
-    import unicodedata
-    import pandas as pd
-    from datetime import datetime
-    import os
-    import json
-    import os
-    import time
-    from office365.runtime.auth.authentication_context import AuthenticationContext
-    from office365.sharepoint.client_context import ClientContext
-    from office365.sharepoint.files.file import File
-    from office365.runtime.auth.user_credential import UserCredential
-    from urllib.parse import quote
-    import re
-    from SendSMTPMail import send_email
+import requests
+import uuid
+import re
+import html
+import unicodedata
+import pandas as pd
+from datetime import datetime
+import os
+import json
+import os
+import time
+from office365.runtime.auth.authentication_context import AuthenticationContext
+from office365.sharepoint.client_context import ClientContext
+from office365.sharepoint.files.file import File
+from office365.runtime.auth.user_credential import UserCredential
+from urllib.parse import quote
+import re
+from SendSMTPMail import send_email
+from SharePointUploader import sharepoint_client, download_file_from_sharepoint
+def sanitize_sagstitel(sagstitel):
+    try:
+        sagstitel = html.unescape(sagstitel)
+        sagstitel = unicodedata.normalize('NFKC', sagstitel)
+        sagstitel = sagstitel.replace('"', '')
+        sagstitel = re.sub(r'[.:>#<*\?/%&{}\[\]\$!"@+\|\'=€]+', '', sagstitel)
+        sagstitel = sagstitel.replace('\n', '').replace('\r', '')
+        sagstitel = re.sub(r'[^a-zA-Z0-9ÆØÅæøå ]', '', sagstitel)
+        sagstitel = re.sub(r' {2,}', ' ', sagstitel)
+        sagstitel = sagstitel.strip()
+                # Check length and truncate if necessary
+        if len(sagstitel) > 49:
+            sagstitel = sagstitel[:50].strip()
+        
+        return sagstitel
 
+    except Exception as e:
+        raise Exception(f"Error during sanitization: {str(e)}")
+    
+def get_document_list(Sagsnummer, GeoSag, NovaSag, KMD_access_token, KMDNovaURL, SharePointUrl, Overmappe, Undermappe, MailModtager, tenant, client_id, thumbprint, cert_path, go_session): 
 
-    # Helper function for sanitizing sagstitel
-    def sanitize_sagstitel(sagstitel):
-        try:
-            sagstitel = html.unescape(sagstitel)
-            sagstitel = unicodedata.normalize('NFKC', sagstitel)
-            sagstitel = sagstitel.replace('"', '')
-            sagstitel = re.sub(r'[.:>#<*\?/%&{}\[\]\$!"@+\|\'=€]+', '', sagstitel)
-            sagstitel = sagstitel.replace('\n', '').replace('\r', '')
-            sagstitel = re.sub(r'[^a-zA-Z0-9ÆØÅæøå ]', '', sagstitel)
-            sagstitel = re.sub(r' {2,}', ' ', sagstitel)
-            sagstitel = sagstitel.strip()
-                   # Check length and truncate if necessary
-            if len(sagstitel) > 49:
-                sagstitel = sagstitel[:50].strip()
-            
-            return sagstitel
-
-        except Exception as e:
-            raise Exception(f"Error during sanitization: {str(e)}")
-
-
-    # Initialize variables
-    RobotUserName = Arguments.get("in_RobotUserName")
-    RobotPassword = Arguments.get("in_RobotPassword")
-    Sagsnummer = Arguments.get("in_Sagsnummer")
-    GeoSag = Arguments.get("in_GeoSag")  
-    NovaSag = Arguments.get("in_NovaSag")
-    KMD_access_token = Arguments.get("KMD_access_token")
-    KMDNovaURL = Arguments.get("KMDNovaURL")
-    SharePointUrl = Arguments.get("in_SharePointUrl")
     sagstitel = ""  # Default value if no title is retrieved
-    Overmappe = Arguments.get("in_Overmappe")
-    Undermappe = Arguments.get("in_Undermappe")
-    MailModtager= Arguments.get("in_MailModtager")
-    tenant = Arguments.get("tenant")
-    client_id = Arguments.get("client_id")
-    thumbprint = Arguments.get("thumbprint")
-    cert_path = Arguments.get("cert_path")
 
     # --- Check if it's a Geo-sag ---
     if GeoSag:
@@ -64,20 +46,16 @@ def invoke(Arguments, go_Session):
         url = f"https://ad.go.aarhuskommune.dk/_goapi/Cases/Metadata/{Sagsnummer}"
 
         try:
-            response = go_Session.get(url)
+            response = go_session.get(url)
             print(f"Geo API Response Status Code: {response.status_code}")
 
             response_data = response.json()
             metadata = response_data.get("Metadata")
 
-            if metadata:
-                sagstitel = metadata.split('ows_Title="')[1].split('"')[0]
-                print("Sagstitel (Geo):", sagstitel)
-            else:
-                print("Metadata field is missing in the response.")
+            sagstitel = metadata.split('ows_Title="')[1].split('"')[0]
+            print("Sagstitel (Geo):", sagstitel)
         except Exception as e:
             raise Exception("Failed to extract Sagstitel (Geo):", str(e))
-
 
     # --- Check if it's a Nova-sag ---
     elif NovaSag:
@@ -111,94 +89,36 @@ def invoke(Arguments, go_Session):
 
         try:
             response = requests.put(url, headers=headers, json=payload)
-            print("Nova API Response:", response.status_code, response.text)
-
-            if response.status_code == 200:
-                sagstitel = response.json()['cases'][0]['caseAttributes']['title']
-                print("Sagstitel (Nova):", sagstitel)
-            else:
-                print("Failed to fetch Sagstitel from NOVA. Status Code:", response.status_code)
+            response.raise_for_status()
+            
+            sagstitel = response.json()['cases'][0]['caseAttributes']['title']
+            print("Sagstitel (Nova):", sagstitel)
         except Exception as e:
-            raise Exception("Failed to fetch Sagstitel (Nova):", str(e))
+            raise e
 
     # Sanitize sagstitel regardless of source or failure
     sagstitel = sanitize_sagstitel(sagstitel)
     print(f"Final Sanitized Sagstitel: {sagstitel}")
-    
-    
 
-        # ---- Henter dokumentlisten fra Sharepoint ----
-
-    # Inputs
+    # ---- Henter dokumentlisten fra Sharepoint ----
     site_relative_path = "/Teams/tea-teamsite10506/Delte Dokumenter"
-    download_path = os.path.join(os.path.expanduser("~"), "Downloads")
-
-
-    # SharePoint authentication and client setup
-    def sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointUrl) -> ClientContext:
-        try:
-            cert_credentials = {
-                "tenant": tenant,
-                "client_id": client_id,
-                "thumbprint": thumbprint,
-                "cert_path": cert_path
-            }
-            ctx = ClientContext(SharePointUrl).with_client_certificate(**cert_credentials)
-
-            # Load the SharePoint web to test the connection
-            web = ctx.web
-            ctx.load(web)
-            ctx.execute_query()
-
-            return ctx
-        except Exception as e:
-            raise Exception(f"Authentication failed: {e}")
-
-
-    # File downloading logic from SharePoint
-    def download_file_from_sharepoint(client: ClientContext, sharepoint_file_url: str) -> str:
-        """
-        Downloads a file from SharePoint and returns the local file path.
-        """
-        file_name = sharepoint_file_url.split("/")[-1]  # Extract file name from URL
-        local_file_path = os.path.join(download_path, file_name)  # Define local path
-
-        try:
-            # Ensure the download directory exists
-            if not os.path.exists(download_path):
-                os.makedirs(download_path)
-
-            # Download the file
-            with open(local_file_path, "wb") as local_file:
-                client.web.get_file_by_server_relative_path(sharepoint_file_url).download(local_file).execute_query()
-
-            return local_file_path
-        except Exception as e:
-            raise Exception(f"Error downloading file from SharePoint: {e}")
-
-
+    
     # Main logic
     try:
-        # Authenticate to SharePoint
-        tenant = Arguments.get("tenant")
-        client_id = Arguments.get("client_id")
-        thumbprint = Arguments.get("thumbprint")
-        cert_path = Arguments.get("cert_path")
-
         client = sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointUrl)
 
         # Construct paths for Overmappe and Undermappe without over-encoding
         overmappe_url = f"{site_relative_path}/Dokumentlister/{Overmappe}"
-        print(f"Overmappe URL: {overmappe_url}")
         overmappe_folder = client.web.get_folder_by_server_relative_url(overmappe_url)
         client.load(overmappe_folder)
         client.execute_query()
 
-
         undermappe_url = f"{overmappe_url}/{Undermappe}"
+        print(f'undermappe {undermappe_url}')
         undermappe_folder = client.web.get_folder_by_server_relative_url(undermappe_url)
         client.load(undermappe_folder)
         client.execute_query()
+
 
         # Fetch files in the Undermappe folder
         print("Fetching files from the folder...")
@@ -207,30 +127,23 @@ def invoke(Arguments, go_Session):
         client.execute_query()
 
         # Print and process file names
-        data_table = []  # To store file information with dates
-
+        date_re = re.compile(r"(\d{2}-\d{2}-\d{4})")
+        data_table = []
         for file in files:
             file_name = file.properties["Name"]
+            date_from_name = date_re.search(file_name)
+            if not date_from_name:
+                raise ValueError(f"Mangler dato i filnavn: {file_name}")
 
-            dokument_date = None  # Initialize dokument_date
-
-            if "_" in file_name:
-                try:
-                    # Extract the part after the first underscore
-                    date_part = file_name.split("_")[1]
-                    date_str = date_part.split(".")[0]  # Part before the first dot
-                    dokument_date = datetime.strptime(date_str, "%d-%m-%Y")
-                except (IndexError, ValueError):
-                    print(f"  -> Error parsing date from: {file_name}. Defaulting to 01-01-2023")
-                    dokument_date = datetime.strptime("01-01-2023", "%d-%m-%Y")
-            else:
-                print(f"  -> No underscore found in: {file_name}. Defaulting to 01-01-2023")
-                dokument_date = datetime.strptime("01-01-2023", "%d-%m-%Y")
+            date_str = date_from_name.group(1)
+            try:
+                dt = datetime.strptime(date_str, "%d-%m-%Y")
+            except ValueError as e:
+                raise ValueError(f"Ugyldig dato '{date_str}' i filnavn: {file_name}") from e
 
             data_table.append({
                 "FileName": file_name,
-                "DocumentDate": dokument_date.strftime('%d-%m-%Y')
-            })
+                "DocumentDate": dt.strftime("%d-%m-%Y")})
 
         # Sort files by date in descending order
         data_table = sorted(
@@ -239,16 +152,13 @@ def invoke(Arguments, go_Session):
             reverse=True
         )
 
-        for entry in data_table:
-            print(f" - {entry['FileName']} (Date: {entry['DocumentDate']})")
-
         # Download the newest file if available
         if data_table:
             newest_file = data_table[0]
             newest_file_name = newest_file["FileName"]
             DokumentlisteDatoString = newest_file["DocumentDate"] 
             sharepoint_file_url = f"{undermappe_url}/{newest_file_name}"
-            local_file_path = download_file_from_sharepoint(client, sharepoint_file_url)
+            local_file_path = download_file_from_sharepoint(client, sharepoint_file_url, download_path= os.getcwd())
 
         if local_file_path.endswith('.xlsx'):
             # Read Excel file into a Pandas DataFrame
@@ -285,8 +195,5 @@ def invoke(Arguments, go_Session):
 
         return None
 
-    return {
-    "sagstitel": sagstitel,
-    "dt_DocumentList": dt_DocumentList,
-    "out_DokumentlisteDatoString": DokumentlisteDatoString
-    }
+    return sagstitel, dt_DocumentList, DokumentlisteDatoString
+

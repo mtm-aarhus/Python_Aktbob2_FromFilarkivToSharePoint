@@ -1,61 +1,23 @@
-def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
-    import pandas as pd
-    import re
-    import requests
-    from requests_ntlm import HttpNtlmAuth
-    import json
-    import os
-    import time
-    from datetime import datetime
-    from msal import PublicClientApplication
-    from office365.sharepoint.client_context import ClientContext
-    from office365.sharepoint.sharing.links.kind import SharingLinkKind
-    from office365.sharepoint.webs.web import Web
-    from office365.runtime.auth.user_credential import UserCredential
-    import uuid
-    import json
-    from datetime import datetime
-    import mimetypes
-    
-    # henter in_argumenter:
-    dt_DocumentList = Arguments_GetDocumentsForAktliste.get("in_dt_Documentlist")
-    CloudConvertAPI = Arguments_GetDocumentsForAktliste.get("in_CloudConvertAPI")
-    MailModtager = Arguments_GetDocumentsForAktliste.get("in_MailModtager")
-    UdviklerMailAktbob = Arguments_GetDocumentsForAktliste.get("in_UdviklerMail")
-    RobotUserName = Arguments_GetDocumentsForAktliste.get("in_RobotUserName")
-    RobotPassword = Arguments_GetDocumentsForAktliste.get("in_RobotPassword")
-    FilarkivCaseID = Arguments_GetDocumentsForAktliste.get("in_FilarkivCaseID")
-    SharePointAppID = Arguments_GetDocumentsForAktliste.get("in_SharePointAppID")
-    SharePointTenant = Arguments_GetDocumentsForAktliste.get("in_SharePointTenant")
-    SharePointURL = Arguments_GetDocumentsForAktliste.get("in_SharePointUrl")
-    Overmappe = Arguments_GetDocumentsForAktliste.get("in_Overmappe")
-    Undermappe = Arguments_GetDocumentsForAktliste.get("in_Undermappe")
-    Sagsnummer = Arguments_GetDocumentsForAktliste.get("in_Sagsnummer")
-    GeoSag = Arguments_GetDocumentsForAktliste.get("in_GeoSag")
-    NovaSag = Arguments_GetDocumentsForAktliste.get("in_NovaSag")
-    FilarkivURL = Arguments_GetDocumentsForAktliste.get("in_FilarkivURL")
-    Filarkiv_access_token = Arguments_GetDocumentsForAktliste.get("in_Filarkiv_access_token")
-    KMDNovaURL = Arguments_GetDocumentsForAktliste.get("in_KMDNovaURL")
-    KMD_access_token = Arguments_GetDocumentsForAktliste.get("in_NovaToken")
-    GoUsername = Arguments_GetDocumentsForAktliste.get("in_GoUsername")
-    GoPassword = Arguments_GetDocumentsForAktliste.get("in_GoPassword")
+import pandas as pd
+import re
+import requests
+from requests_ntlm import HttpNtlmAuth
+import json
+import os
+import time
+from datetime import datetime
+from msal import PublicClientApplication
+from office365.sharepoint.client_context import ClientContext
+from office365.sharepoint.sharing.links.kind import SharingLinkKind
+from office365.sharepoint.webs.web import Web
+from office365.runtime.auth.user_credential import UserCredential
+import uuid
+import json
+from datetime import datetime
+import mimetypes
+from SharePointUploader import upload_file_to_sharepoint
 
-    # Define the structure of the data table
-    dt_AktIndex = {
-        "Akt ID": pd.Series(dtype="int32"),
-        "Filnavn": pd.Series(dtype="string"),
-        "Dokumentkategori": pd.Series(dtype="string"),
-        "Dokumentdato": pd.Series(dtype="datetime64[ns]"),
-        "Dok ID": pd.Series(dtype="string"),
-        "Bilag til Dok ID": pd.Series(dtype="string"),
-        "Bilag": pd.Series(dtype="string"),
-        "Omfattet af aktindsigt?": pd.Series(dtype="string"),
-        "Gives der aktindsigt?": pd.Series(dtype="string"),
-        "Begrundelse hvis Nej/Delvis": pd.Series(dtype="string"),
-    }
-    dt_AktIndex = pd.DataFrame(dt_AktIndex)
-    #Functions: 
-    def sanitize_title(Titel):
+def sanitize_title(Titel):
         # 1. Replace double quotes with an empty string
         Titel = Titel.replace("\"", "")
 
@@ -75,66 +37,66 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
         Titel = re.sub(r" {2,}", " ", Titel)
 
         return Titel
-    
-    def calculate_available_title_length(base_path, Overmappe, Undermappe, AktID, DokumentID, Titel, max_path_length=400):
-        overmappe_length = len(Overmappe)
-        undermappe_length = len(Undermappe)
-        aktID_length = len(str(AktID))
-        dokID_length = len(str(DokumentID))
 
-        fixed_length = len(base_path) + overmappe_length + undermappe_length + aktID_length + dokID_length + 7
-        available_title_length = max_path_length - fixed_length
+def calculate_available_title_length(base_path, Overmappe, Undermappe, AktID, DokumentID, Titel, max_path_length=400):
+    overmappe_length = len(Overmappe)
+    undermappe_length = len(Undermappe)
+    aktID_length = len(str(AktID))
+    dokID_length = len(str(DokumentID))
 
-        if len(Titel) > available_title_length:
-            return Titel[:available_title_length]
-        
-        return Titel
-    
-    def fetch_document_info(DokumentID, session, AktID, Titel):
-        url = f"https://ad.go.aarhuskommune.dk/_goapi/Documents/Data/{DokumentID}"
-        response = session.get(url)
-        DocumentData = response.text
-        data = json.loads(DocumentData)
-        item_properties = data.get("ItemProperties", "")
-        file_type_match = re.search(r'ows_File_x0020_Type="([^"]+)"', item_properties)
-        version_ui_match = re.search(r'ows__UIVersionString="([^"]+)"', item_properties)
-        DokumentType = file_type_match.group(1) if file_type_match else "Not found"
-        VersionUI = version_ui_match.group(1) if version_ui_match else "Not found"
-        Feedback = " "
-        file_path = os.path.join(
-            "C:\\Users",
-            os.getenv("USERNAME"),
-            "Downloads",
-            f"{AktID:04} - {DokumentID} - {Titel}"
-        )
-        return {"DokumentType": DokumentType, "VersionUI": VersionUI, "Feedback": Feedback, "file_path": file_path}
-    
-    with requests.Session() as session:
-            session.auth = HttpNtlmAuth(GoUsername, GoPassword)
-            session.headers.update({"Content-Type": "application/json"}) 
+    fixed_length = len(base_path) + overmappe_length + undermappe_length + aktID_length + dokID_length + 7
+    available_title_length = max_path_length - fixed_length
 
+    if len(Titel) > available_title_length:
+        return Titel[:available_title_length]
+    
+    return Titel
+
+def fetch_document_info(DokumentID, go_session, AktID, Titel):
+    url = f"https://ad.go.aarhuskommune.dk/_goapi/Documents/Data/{DokumentID}"
+    response = go_session.get(url)
+    DocumentData = response.text
+    data = json.loads(DocumentData)
+    item_properties = data.get("ItemProperties", "")
+    file_type_match = re.search(r'ows_File_x0020_Type="([^"]+)"', item_properties)
+    DokumentType = file_type_match.group(1) if file_type_match else "Not found"
+   
+    return {"DokumentType": DokumentType}
+
+def GetDocumentsForAktliste(dt_DocumentList, Overmappe, Undermappe, Sagsnummer, GeoSag, KMDNovaURL, KMD_access_token, go_session):
+    
+    # Define the structure of the data table
+    dt_AktIndex = {
+        "Akt ID": pd.Series(dtype="int32"),
+        "Filnavn": pd.Series(dtype="string"),
+        "Dokumentkategori": pd.Series(dtype="string"),
+        "Dokumentdato": pd.Series(dtype="datetime64[ns]"),
+        "Dok ID": pd.Series(dtype="string"),
+        "Bilag til Dok ID": pd.Series(dtype="string"),
+        "Bilag": pd.Series(dtype="string"),
+        "Omfattet af aktindsigt?": pd.Series(dtype="string"),
+        "Gives der aktindsigt?": pd.Series(dtype="string"),
+        "Begrundelse hvis Nej/Delvis": pd.Series(dtype="string"),
+    }
+    dt_AktIndex = pd.DataFrame(dt_AktIndex)
     dt_DocumentList['Dokumentdato'] = pd.to_datetime(dt_DocumentList['Dokumentdato'], errors='coerce',format='%d-%m-%Y')
-
     
     for index, row in dt_DocumentList.iterrows():
         # Convert items to strings unless they are explicitly integers
         Omfattet = str(row["Omfattet af ansøgningen? (Ja/Nej)"])
         DokumentID = str(row["Dok ID"])
-        
+        Titel = str(row["Dokumenttitel"])
+
         # Handle AktID conversion
         AktID = row['Akt ID']
         if isinstance(AktID, str):  
             AktID = int(AktID.replace('.', ''))
-        elif isinstance(AktID, int):  
-            AktID = AktID
-
-        Titel = str(row["Dokumenttitel"])
 
         mimetypes.add_type("application/x-msmetafile", ".emz")
+
         # Split title into name and extension
-        parts = Titel.rsplit('.', 1)  # Splits at the last dot
-        if len(parts) == 2:
-            name, ext = parts
+        if '.' in Titel:
+            name, ext = Titel.rsplit('.', 1)  # Splits at the last dot
             # Check if it's a known file extension
             if mimetypes.guess_type(f"file.{ext}")[0]:  
                 Titel = name  # Remove extension
@@ -149,7 +111,6 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
             Dokumentdato = Dokumentdato.strftime("%d-%m-%Y")
         else:
             Dokumentdato = datetime.strptime(Dokumentdato, "%Y-%m-%d").strftime("%d-%m-%Y")
-        # Dokumentdato = datetime.strptime(row["Dokumentdato"], "%d-%m-%Y").strftime("%d-%m-%Y")
 
         # Declare the necessary variables
         base_path = "Teams/tea-teamsite10506/Delte dokumenter/Aktindsigter/"
@@ -159,17 +120,11 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
 
         Titel = calculate_available_title_length(base_path, Overmappe, Undermappe, AktID, DokumentID, Titel)
 
-
-        #Henter Dokumentinfo: 
-
-        if GeoSag == True: 
-            Metadata = fetch_document_info(DokumentID, session, AktID, Titel)
+        if GeoSag: 
+            Metadata = fetch_document_info(DokumentID, go_session, AktID, Titel)
             
             # Extracting variables for further use in the loop
             DokumentType = Metadata["DokumentType"]
-            VersionUI = Metadata["VersionUI"]
-            Feedback = Metadata["Feedback"]
-            file_path = Metadata["file_path"]
 
         else: #Det er en NovaSag
             TransactionID = str(uuid.uuid4())
@@ -183,7 +138,6 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
             payload = {
                 "common": {
                     "transactionId": TransactionID,
-                    #"uuid": DokumentID ## skal hente dokument id og ikke dokumentnr, find ud af hvornår den skal hentes.
                 },
                 "paging": {
                     "startRow": 1,
@@ -198,15 +152,10 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
                     }
                 }
 
-            try:
-                response = requests.put(url, headers=headers, json=payload)
-            except Exception as e:
-                raise Exception("Failed to fetch Sagstitel (Nova):", str(e))
+            response = requests.put(url, headers=headers, json=payload)
+            response.raise_for_status()
 
             DokumentType = response.json()["documents"][0]["fileExtension"]
-            DocumentUuid = response.json()["documents"][0]["documentUuid"]
-
-        
 
         Titel = f"{AktID:04} - {DokumentID} - {Titel}.{DokumentType}"
 
@@ -230,6 +179,4 @@ def invoke_GetDocumentsForAktliste(Arguments_GetDocumentsForAktliste):
         # Sort and reset index
         dt_AktIndex = dt_AktIndex.sort_values(by="Akt ID", ascending=True).reset_index(drop=True)
         
-    return {
-    "out_dt_AktIndex": dt_AktIndex,
-    }
+    return dt_AktIndex

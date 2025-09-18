@@ -1,138 +1,48 @@
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
-def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator_connection: OrchestratorConnection):
-    from office365.sharepoint.client_context import ClientContext
-    from office365.sharepoint.sharing.role import Role
-    from office365.sharepoint.sharing.user_role_assignment import UserRoleAssignment
-    from office365.runtime.auth.user_credential import UserCredential
-    from office365.sharepoint.sharing.links.kind import SharingLinkKind
-    import uuid
-    import requests
-    import json
-    from datetime import datetime, timedelta, timezone
-    from SendSMTPMail import send_email
-    import random
-    import string
+import requests
+import json
+from SendSMTPMail import send_email
+from SharePointUploader import sharepoint_client, get_sharepoint_folder_links
+def upload_sharepoint_link_to_podio(PodioID: str, ApiURL: str, ApiKey: str, SharePointLink: str):
+    API_start = ApiURL.rsplit('/', 1)[0]
+
+    url = f"{API_start}/Api/Podio/{PodioID}/SharepointmappeField"
+    headers = {
+        "ApiKey": ApiKey,
+        "Content-Type": "application/json"
+    }
+    json_body = {"value": SharePointLink}
+
+    response = requests.put(url, json=json_body, headers=headers)
+    response.raise_for_status()
+
+def send_LinkToDeskpro(secure_link, password, deskpro_id):
+    # Define the URL
+    url = "https://aarhuskommune4.deskpro.com/api/v2/webhooks/A7O1H3HKEW76MAXA/invocation"
     
+    # Calculate expiration date (current date + 30 days) and format it
+    # expiration_date = (datetime.now(timezone.utc) + timedelta(days=60)).strftime("%Y-%m-%d")
+    # JSON payload
+    payload = {
+        "sharePointShareUrl": secure_link,
+        "Password": password,
+        #"sharePointExpirationDate": expiration_date,
+        "deskproTicketId": deskpro_id
+    }
+    
+    # Headers
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    # Make the request
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    response.raise_for_status()   
+    
+def SendShareLinkToDeskpro(SharePointURL, Overmappe, PodioID, AktbobAPIKey, DeskProID, MailModtager, Sagsnummer, tenant, client_id, thumbprint, cert_path, orchestrator_connection: OrchestratorConnection):
 
-    SharePointAppID = Arguments_SendShareLinkToDeskpro.get("in_SharePointAppID")
-    SharePointTenant = Arguments_SendShareLinkToDeskpro.get("in_SharePointTenant")
-    SharePointURL = Arguments_SendShareLinkToDeskpro.get("in_SharePointURL")
-    Overmappe = Arguments_SendShareLinkToDeskpro.get("in_Overmappe")
-    Undermappe = Arguments_SendShareLinkToDeskpro.get("in_Undermappe")
-    RobotUserName = Arguments_SendShareLinkToDeskpro.get("in_RobotUserName")
-    RobotPassword = Arguments_SendShareLinkToDeskpro.get("in_RobotPassword")
-    PodioID = Arguments_SendShareLinkToDeskpro.get("in_PodioID")
-    AktbobAPIKey = Arguments_SendShareLinkToDeskpro.get("in_AktbobAPIKey")
-    DeskProID = Arguments_SendShareLinkToDeskpro.get("in_DeskProID")
-    DeskProTitel = Arguments_SendShareLinkToDeskpro.get("in_DeskProTitel")
-    MailModtager = Arguments_SendShareLinkToDeskpro.get("in_MailModtager")
-    Sagsnummer = Arguments_SendShareLinkToDeskpro.get("in_Sagsnummer")
-    tenant = Arguments_SendShareLinkToDeskpro.get("tenant")
-    client_id = Arguments_SendShareLinkToDeskpro.get("client_id")
-    thumbprint = Arguments_SendShareLinkToDeskpro.get("thumbprint")
-    cert_path = Arguments_SendShareLinkToDeskpro.get("cert_path")
-
-    DeskProAPI = orchestrator_connection.get_credential("DeskProAPI") #Credential
+    DeskProAPI = orchestrator_connection.get_credential("DeskProAPI") 
     DeskProAPIKey = DeskProAPI.password  
-    
-    def sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointUrl) -> ClientContext:
-        try:
-            cert_credentials = {
-                "tenant": tenant,
-                "client_id": client_id,
-                "thumbprint": thumbprint,
-                "cert_path": cert_path
-            }
-            ctx = ClientContext(SharePointUrl).with_client_certificate(**cert_credentials)
-        
-            # Load the SharePoint web to test the connection
-            web = ctx.web
-            ctx.load(web)
-            ctx.execute_query()
-        
-            return ctx
-        except Exception as e:
-            raise Exception(f"Authentication failed: {e}")
-
-    def get_sharepoint_folder_links(client: ClientContext, Overmappe: str, site_relative_path):
-        """ Generates both public and password-protected SharePoint folder links. """
-        try:
-            folder_url = f"{site_relative_path}/Aktindsigter/{Overmappe}"
-            folder = client.web.get_folder_by_server_relative_path(folder_url)
-            client.load(folder)
-            client.execute_query()
-
-            # Generate a public anonymous view-only link
-            public_link_result = folder.share_link(SharingLinkKind.AnonymousView).execute_query()
-            public_link = public_link_result.value.sharingLinkInfo.Url
-
-            # Generate a password-protected link
-            #expiration_date = (datetime.utcnow() + timedelta(days=60)).isoformat() + "Z"
-            expiration_date = (datetime.now(timezone.utc) + timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%S%z")
-            characters = string.ascii_letters + string.digits 
-            password = ''.join(random.choices(characters, k=6))
-            secure_link_result = folder.share_link(
-                link_kind=SharingLinkKind.Flexible,
-                expiration=expiration_date,
-                password=password,
-                role=Role.View
-            ).execute_query()
-            secure_link = secure_link_result.value.sharingLinkInfo.Url
-
-            return public_link, secure_link, password
-        except Exception as e:
-            raise Exception(f"Error generating shareable links: {e}")
-
-
-    def upload_sharepoint_link_to_podio(PodioID: str, ApiKey: str, SharePointLink: str):
-        try:
-            url = f"https://aktbob-external-api.grayglacier-2d22de15.northeurope.azurecontainerapps.io/Api/Podio/{PodioID}/SharepointmappeField"
-            headers = {
-                "ApiKey": ApiKey,
-                "Content-Type": "application/json"
-            }
-            json_body = {"value": SharePointLink}
-
-            response = requests.put(url, json=json_body, headers=headers)
-            
-            print("Response Status:", response.status_code)
-            print("Response:", response.text)
-        except requests.exceptions.RequestException as e:
-            print("Failed")
-            #raise Exception(f"Request to API failed: {e}")    
-    
-    def send_LinkToDeskpro(secure_link, password, deskpro_id):
-        try:
-            # Define the URL
-            url = "https://aarhuskommune4.deskpro.com/api/v2/webhooks/A7O1H3HKEW76MAXA/invocation"
-            
-            # Calculate expiration date (current date + 30 days) and format it
-            expiration_date = (datetime.now(timezone.utc) + timedelta(days=60)).strftime("%Y-%m-%d")
-            # JSON payload
-            payload = {
-                "sharePointShareUrl": secure_link,
-                "Password": password,
-                #"sharePointExpirationDate": expiration_date,
-                "deskproTicketId": deskpro_id
-            }
-            
-            # Headers
-            headers = {
-                "Content-Type": "application/json"
-            }
-            
-            # Make the request
-            response = requests.post(url, headers=headers, data=json.dumps(payload))
-            
-            print("Response Status:", response.status_code)
-        except requests.exceptions.RequestException as e:
-            raise Exception(f"Request to API failed: {e} with status: {response.status_code}")    
-    
-    
-
-
-
-    ### ---- Henter deskpro info: --- ####
 
     Deskprourl = f"https://mtmsager.aarhuskommune.dk/api/v2/tickets/{DeskProID}"
 
@@ -141,61 +51,32 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
         'Cookie': 'dp_last_lang=da'
     }
 
-    # Initialize flag
-    GenerateSharePointLink = False
+    response = requests.get(Deskprourl, headers=headers)
+    response.raise_for_status()
+    data = response.json()
+    fields = data.get("data", {}).get("fields", {})
+    # Get values from field 110 and 134
+    sharepoint_link = fields.get("110", {}).get("value", "")
 
-    try:
-        response = requests.get(Deskprourl, headers=headers)
+    SendEmailUdleveringsmappe = False
 
-        if response.status_code != 200:
-            raise Exception(f"Request failed with status code {response.status_code}: {response.text}")
+    # If no SharePoint link exists → we must generate one
+    if not isinstance(sharepoint_link, str) or not sharepoint_link.strip():
+        SendEmailUdleveringsmappe = True
 
-        data = response.json()
-        fields = data.get("data", {}).get("fields", {})
-        now = datetime.now(timezone.utc)
-        # Get values from field 110 and 134
-        sharepoint_link = fields.get("110", {}).get("value", "")
-        receive_data_str = fields.get("134", {}).get("value", "")
+    # Fetch SharePoint folder link
+    site_relative_path = "/Teams/tea-teamsite10506/Delte Dokumenter"
+    client = sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointURL)
 
-        # If no SharePoint link exists → we must generate one
-        if not isinstance(sharepoint_link, str) or not sharepoint_link.strip():
-            GenerateSharePointLink = True
+    # Retrieve both links
+    public_link, secure_link, password = get_sharepoint_folder_links(client, Overmappe, site_relative_path)
+    API_url  = orchestrator_connection.get_credential('AktbobAPIKey').username
 
-        else:
-            # SharePoint link exists → now check the age of ReceiveData
-            try:
-                receive_data_date = datetime.strptime(receive_data_str, "%Y-%m-%dT%H:%M:%S%z")
-                print(f"Receivedate: {receive_data_str}")
-                if now - receive_data_date > timedelta(days=14):
-                    GenerateSharePointLink = True
-                else:
-                    GenerateSharePointLink = False
-            except ValueError:
-                print(f"Invalid date format in field 134: {receive_data_str}")
-                GenerateSharePointLink = False
-
-    except Exception as e:
-        print(f"Error retrieving ticket data: {e}")
-        GenerateSharePointLink = False
-
-    if GenerateSharePointLink:
-        print("Generating a new SharePoint link...")
-        
-        # Fetch SharePoint folder link
-        site_relative_path = "/Teams/tea-teamsite10506/Delte Dokumenter"
-        client = sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointURL)
-
-
-        # Retrieve both links
-        public_link, secure_link, password = get_sharepoint_folder_links(client, Overmappe, site_relative_path)
-        print(f"Public Shareable Link: {public_link}")
-        print(f"Password-Protected Shareable Link: {secure_link}")
-
-
-        upload_sharepoint_link_to_podio(PodioID, AktbobAPIKey, public_link)
-        
-        send_LinkToDeskpro(secure_link, password, DeskProID)
-        
+    upload_sharepoint_link_to_podio(PodioID, API_url, AktbobAPIKey, public_link)
+    
+    send_LinkToDeskpro(secure_link, password, DeskProID)
+    
+    if SendEmailUdleveringsmappe:
         # # Define email details
         sender = "aktbob@aarhus.dk" # Replace with actual sender
         subject = f"{Sagsnummer}: Udleveringsmappe klar"
@@ -220,14 +101,3 @@ def invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro, orchestrator
             smtp_port=smtp_port,
             html_body=True
         )
-
-    else:
-        print("No need to generate a new SharePoint link.")
-
-
-
-
-    return {"out_Text": "Delinger er blevet oprettet"}
-
-
-

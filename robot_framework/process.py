@@ -133,11 +133,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     else:
         print("Number of rows:",len(dt_DocumentList))
 
-
-
-
-
-
     # ---- Run "GetDocumentsForAktliste" ----
     Arguments_GetDocumentsForAktliste = {
         "in_dt_Documentlist": dt_DocumentList,
@@ -244,7 +239,6 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     "cert_path": cert_path
     }
      
-
     SendShareLinkToDeskpro_Output_arguments = SendShareLinkToDeskpro.invoke_SendShareLinkToDeskpro(Arguments_SendShareLinkToDeskpro,orchestrator_connection)
     Test = SendShareLinkToDeskpro_Output_arguments.get("out_Text")
     orchestrator_connection.log_trace(Test)
