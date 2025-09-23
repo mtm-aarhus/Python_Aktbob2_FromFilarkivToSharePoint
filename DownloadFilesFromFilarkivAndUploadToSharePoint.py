@@ -117,6 +117,6 @@ def DownloadFilesFromFilarkivAndUploadToSharePoint( FilarkivURL, Filarkiv_access
                 raise Exception(f"Error deleting {file_path}: {str(e)}")
     else:
         orchestrator_connection.log_info('Ingen filer er blevet downloadet, slutter processen')
-        return None
+        return dt_AktIndex
 
     return dt_AktIndex
