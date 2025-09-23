@@ -75,7 +75,7 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     
     if any(x is None for x in [Sagstitel, dt_DocumentList, DokumentlisteDatoString]):
         orchestrator_connection.log_info('None returned from doclist. Maybe file transfer is tried before doclist is made.')
-        sys.exit(0)
+        return
 
     if dt_DocumentList.empty:
         sender = "aktbob@aarhus.dk" 
@@ -97,7 +97,7 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
             html_body=True
         )
         orchestrator_connection.log_info('Dokumentlisten er tom. Processen afsluttes')
-        sys.exit(0)
+        return
 
     dt_AktIndex = GetDocumentsForAktliste(dt_DocumentList = dt_DocumentList, Overmappe = Overmappe, Undermappe = Undermappe, Sagsnummer = Sagsnummer, GeoSag = GeoSag, KMDNovaURL = KMDNovaURL, KMD_access_token = KMD_access_token, go_session = go_session)
     dt_AktIndex = DownloadFilesFromFilarkivAndUploadToSharePoint(FilarkivURL, Filarkiv_access_token, dt_AktIndex, FilarkivCaseID, SharePointURL, Overmappe, Undermappe, MailModtager, Sagsnummer, tenant, client_id, thumbprint, cert_path, orchestrator_connection )
