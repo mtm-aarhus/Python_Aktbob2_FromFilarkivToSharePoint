@@ -79,9 +79,11 @@ def download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnumme
                     download_url = f"{FilarkivURL}/FileIO/Download?fileId={file_id}"
                     file_path = os.path.join("C:\\Users", os.getlogin(), "Downloads", file_name)
                     print(f'Getting {file_name}')
-                    
                     response = requests.get(download_url, headers=headers)
+                    if response.status_code() == 404:
+                        continue
                     response.raise_for_status()
+
                     with open(file_path, "wb") as f:
                         f.write(response.content)
                         downloaded_files.append(file_path)  
