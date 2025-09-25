@@ -109,6 +109,8 @@ def GetDocumentsForAktliste(dt_DocumentList, Overmappe, Undermappe, Sagsnummer, 
         Dokumentdato =row['Dokumentdato']
         if isinstance(Dokumentdato, pd.Timestamp):
             Dokumentdato = Dokumentdato.strftime("%d-%m-%Y")
+        elif Dokumentdato == None:
+            Dokumentdato = None
         else:
             Dokumentdato = datetime.strptime(Dokumentdato, "%Y-%m-%d").strftime("%d-%m-%Y")
 
@@ -164,7 +166,7 @@ def GetDocumentsForAktliste(dt_DocumentList, Overmappe, Undermappe, Sagsnummer, 
             "Akt ID": int(AktID),
             "Filnavn": Titel,
             "Dokumentkategori": Dokumentkategori,
-            "Dokumentdato": datetime.strptime(Dokumentdato, "%d-%m-%Y"),
+            "Dokumentdato": (datetime.strptime(Dokumentdato, "%d-%m-%Y") if Dokumentdato else " "),
             "Dok ID": DokumentID,
             "Bilag til Dok ID": BilagTilDok,
             "Bilag": DokBilag,
