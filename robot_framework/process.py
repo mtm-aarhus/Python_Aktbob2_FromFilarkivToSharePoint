@@ -70,6 +70,32 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     NovaSag = queue.get("NovaSag")
     FilarkivCaseID = queue.get("FilarkivCaseID")
 
+    if not FilarkivCaseID:
+        orchestrator_connection.log_info('Sagen mangler filarkivcaseid')
+        # Define email details
+        sender = "aktbob@aarhus.dk"
+        subject = f"{Sagsnummer} er ikke overført til screening"
+        body = f"""Kære sagsbehandler,<br><br>
+        Sagen: {Sagsnummer} mangler at få overført dokumenter til screeningsmappen. <br><br>
+        Få overfør dokumenterne først, inden du forsøger steppet 'Overfør dokumenter til udleveringsmappe (Sharepoint)'.<br><br>
+        Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
+        hvor du også finder svar på de fleste spørgsmål og fejltyper.
+        """
+
+        smtp_server = "smtp.adm.aarhuskommune.dk"
+        smtp_port = 25
+
+        # Send the error notification
+        send_email(
+            receiver=MailModtager,
+            sender=sender,
+            subject=subject,
+            body=body,
+            smtp_server=smtp_server,
+            smtp_port=smtp_port,
+            html_body=True
+        ) 
+
     # ---- Run "GetDocumentList" ----
     Sagstitel, dt_DocumentList,  DokumentlisteDatoString = get_document_list(Sagsnummer, GeoSag, NovaSag, KMD_access_token, KMDNovaURL, SharePointURL, Overmappe, Undermappe, MailModtager, tenant, client_id, thumbprint, cert_path, go_session)
     

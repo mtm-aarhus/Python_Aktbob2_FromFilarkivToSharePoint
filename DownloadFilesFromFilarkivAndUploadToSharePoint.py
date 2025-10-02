@@ -9,44 +9,39 @@ from SendSMTPMail import send_email
 from office365.sharepoint.client_context import ClientContext
 import sys
 
-def download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnummer, MailModtager, dt_AktIndex ):
-    url = f"{FilarkivURL}/Documents/CaseDocumentOverview?caseId={FilarkivCaseID}&pageIndex=1&pageSize=800"
-    
+def fetch_all_case_documents(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, orchestrator_connection):
+    headers = {"Authorization": f"Bearer {Filarkiv_access_token}"}
+    page_index = 1
+    page_size = 10
+    all_docs = []
+ 
+    while True:
+        url = f"{FilarkivURL}/Documents/CaseDocumentOverview?caseId={FilarkivCaseID}&skipTotalCount=True&pageIndex={page_index}&pageSize={page_size}"
+        resp = requests.get(url, headers=headers)
+        if resp.status_code != 200:
+            orchestrator_connection.log_info(f"Failed to fetch docs: {resp.status_code} {resp.text}")
+            break
+ 
+        docs = resp.json()
+        all_docs.extend(docs)
+ 
+        # pagination check
+        has_next = resp.headers.get("Pagination-HasNextPage", "False") == "True"
+        if not has_next:
+            break
+        page_index += 1
+ 
+    orchestrator_connection.log_info(f"Fetched {len(all_docs)} docs for case {FilarkivCaseID}")
+    return all_docs
+
+def download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnummer, MailModtager, dt_AktIndex, orchestrator_connection ):
     headers = {
         "Authorization": f"Bearer {Filarkiv_access_token}",
         "Content-Type": "application/xml"
     }
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        document_list = response.json()      
-    except Exception as e:
-        print("Exception occurred:", str(e))
 
-        # Define email details
-        sender = "aktbob@aarhus.dk"
-        subject = f"{Sagsnummer} mangler dokumentliste"
-        body = f"""Kære sagsbehandler,<br><br>
-        Sagen: {Sagsnummer} mangler at få overført dokumenter til screeningsmappen. <br><br>
-        Få overfør dokumenterne først, inden du forsøger steppet 'Overfør dokumenter til udleveringsmappe (Sharepoint)'.<br><br>
-        Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
-        hvor du også finder svar på de fleste spørgsmål og fejltyper.
-        """
+    document_list = fetch_all_case_documents(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, orchestrator_connection)
 
-        smtp_server = "smtp.adm.aarhuskommune.dk"
-        smtp_port = 25
-
-        # Send the error notification
-        send_email(
-            receiver=MailModtager,
-            sender=sender,
-            subject=subject,
-            body=body,
-            smtp_server=smtp_server,
-            smtp_port=smtp_port,
-            html_body=True
-        )
-    
     downloaded_files = []
     
     for document in document_list:
@@ -80,11 +75,14 @@ def download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnumme
                     file_path = os.path.join("C:\\Users", os.getlogin(), "Downloads", file_name)
                     print(f'Getting {file_name}')
                     response = requests.get(download_url, headers=headers)
+                    if response.status_code == 404:
+                        continue
                     response.raise_for_status()
 
                     with open(file_path, "wb") as f:
                         f.write(response.content)
                         downloaded_files.append(file_path)  
+
     return downloaded_files
 
 def DownloadFilesFromFilarkivAndUploadToSharePoint( FilarkivURL, Filarkiv_access_token, dt_AktIndex, FilarkivCaseID, SharePointURL, Overmappe, Undermappe, MailModtager, Sagsnummer, tenant, client_id, thumbprint, cert_path, orchestrator_connection):
@@ -102,7 +100,7 @@ def DownloadFilesFromFilarkivAndUploadToSharePoint( FilarkivURL, Filarkiv_access
     ctx.load(web)
     ctx.execute_query()
 
-    downloaded_files = download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnummer, MailModtager, dt_AktIndex )
+    downloaded_files = download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnummer, MailModtager, dt_AktIndex, orchestrator_connection )
     if downloaded_files:
         for file_path in downloaded_files:
             upload_file_to_sharepoint(

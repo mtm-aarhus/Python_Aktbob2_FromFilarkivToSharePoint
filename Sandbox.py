@@ -58,19 +58,7 @@ def GO_Session(GoUsername, GoPassword):
 # ---- Initialize Go-Session ----
 go_session = GO_Session(GoUsername, GoPassword)
 
-queue = json.loads("""{
-    "Sagsnummer": "GEO-2020-025059",
-    "MailModtager": "balas@aarhus.dk",
-    "DeskProID": 2458,
-    "DeskProTitel": "Test - bilag",
-    "PodioID": 3166339057,
-    "Overmappe": "2458 - Test - bilag",
-    "Undermappe": "GEO-2020-025059 - Trafikforhold - Vejlby-Risskov",
-    "GeoSag": true,
-    "NovaSag": false,
-    "AktSagsURL": "https://go.aarhuskommune.dk/cases/AKT38/AKT-2025-000982",
-    "FilarkivCaseID": "b949b90f-bd6a-4e04-9166-e7715500b003"
-}""")
+queue = json.loads("""""")
 Sagsnummer = queue.get("Sagsnummer")
 MailModtager = queue.get("MailModtager")
 DeskProID = queue.get("DeskProID")
@@ -82,12 +70,22 @@ GeoSag = queue.get("GeoSag")
 NovaSag = queue.get("NovaSag")
 FilarkivCaseID = queue.get("FilarkivCaseID")
 
+# ---- Deffinerer Go-session ----
+def GO_Session(GoUsername, GoPassword):
+    session = requests.Session()
+    session.auth = HttpNtlmAuth(GoUsername, GoPassword)
+    session.headers.update({
+        "Content-Type": "application/json"
+    })
+    return session
+
+# ---- Initialize Go-Session ----
+go_session = GO_Session(GoUsername, GoPassword)
+
+
+
 # ---- Run "GetDocumentList" ----
 Sagstitel, dt_DocumentList,  DokumentlisteDatoString = get_document_list(Sagsnummer, GeoSag, NovaSag, KMD_access_token, KMDNovaURL, SharePointURL, Overmappe, Undermappe, MailModtager, tenant, client_id, thumbprint, cert_path, go_session)
- 
-if any(x is None for x in [Sagstitel, dt_DocumentList, DokumentlisteDatoString]):
-    orchestrator_connection.log_info('None returned from doclist. Maybe file transfer is tried before doclist is made.')
-    sys.exit(0)
 
 if dt_DocumentList.empty:
     sender = "aktbob@aarhus.dk" 
@@ -109,7 +107,7 @@ if dt_DocumentList.empty:
         html_body=True
     )
     orchestrator_connection.log_info('Dokumentlisten er tom. Processen afsluttes')
-    sys.exit(0)
+
 
 dt_AktIndex = GetDocumentsForAktliste(dt_DocumentList = dt_DocumentList, Overmappe = Overmappe, Undermappe = Undermappe, Sagsnummer = Sagsnummer, GeoSag = GeoSag, KMDNovaURL = KMDNovaURL, KMD_access_token = KMD_access_token, go_session = go_session)
 dt_AktIndex = DownloadFilesFromFilarkivAndUploadToSharePoint(FilarkivURL, Filarkiv_access_token, dt_AktIndex, FilarkivCaseID, SharePointURL, Overmappe, Undermappe, MailModtager, Sagsnummer, tenant, client_id, thumbprint, cert_path, orchestrator_connection )
