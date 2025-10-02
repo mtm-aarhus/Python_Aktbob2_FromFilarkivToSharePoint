@@ -10,7 +10,7 @@ from office365.sharepoint.client_context import ClientContext
 import sys
 
 def download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnummer, MailModtager, dt_AktIndex ):
-    url = f"{FilarkivURL}/Documents/CaseDocumentOverview?caseId={FilarkivCaseID}&pageIndex=1&pageSize=10000"
+    url = f"{FilarkivURL}/Documents/CaseDocumentOverview?caseId={FilarkivCaseID}&pageIndex=1&pageSize=800"
     
     headers = {
         "Authorization": f"Bearer {Filarkiv_access_token}",
