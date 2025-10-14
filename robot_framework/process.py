@@ -73,11 +73,11 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
     if not FilarkivCaseID:
         orchestrator_connection.log_info('Sagen mangler filarkivcaseid')
         # Define email details
-        sender = "aktbob@aarhus.dk"
-        subject = f"{Sagsnummer} er ikke overført til screening"
+        sender = "robotfejl@aarhus.dk"
+        subject = f"ROBOTFEJL - KRÆVER HANDLING: {Sagsnummer} er ikke overført til screening"
         body = f"""Kære sagsbehandler,<br><br>
         Sagen: {Sagsnummer} mangler at få overført dokumenter til screeningsmappen. <br><br>
-        Få overfør dokumenterne først, inden du forsøger steppet 'Overfør dokumenter til udleveringsmappe (Sharepoint)'.<br><br>
+        Få overført dokumenterne til screeningsmappen inden du forsøger trinnet 'Overfør dokumenter til udleveringsmappe (Sharepoint)'. Herefter kan du genkøre trinnet i Podio.<br><br>
         Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
         hvor du også finder svar på de fleste spørgsmål og fejltyper.
         """
@@ -104,8 +104,8 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
         return
 
     if dt_DocumentList.empty:
-        sender = "aktbob@aarhus.dk" 
-        subject = f"{Sagsnummer} er en tom sag"
+        sender = "robotfejl@aarhus.dk" 
+        subject = f"ROBOTFEJL - KRÆVER HANDLING: {Sagsnummer} er en tom sag"
         body = f"""Sagen: {Sagsnummer} er en tom sag. Vær opmærksom på, at processen ikke kan behandle tomme sager.<br><br>
         Det anbefales at følge <a href="https://aarhuskommune.atlassian.net/wiki/spaces/AB/pages/64979049/AKTBOB+--+Vejledning">vejledningen</a>, 
         hvor du også finder svar på de fleste spørgsmål og fejltyper.
