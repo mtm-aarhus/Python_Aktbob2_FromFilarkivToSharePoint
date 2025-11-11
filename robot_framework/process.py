@@ -95,6 +95,8 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
             smtp_port=smtp_port,
             html_body=True
         ) 
+        return
+    
 
     # ---- Run "GetDocumentList" ----
     Sagstitel, dt_DocumentList,  DokumentlisteDatoString = get_document_list(Sagsnummer, GeoSag, NovaSag, KMD_access_token, KMDNovaURL, SharePointURL, Overmappe, Undermappe, MailModtager, tenant, client_id, thumbprint, cert_path, go_session)
