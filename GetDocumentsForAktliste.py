@@ -12,7 +12,7 @@ from office365.sharepoint.sharing.links.kind import SharingLinkKind
 from office365.sharepoint.webs.web import Web
 from office365.runtime.auth.user_credential import UserCredential
 import uuid
-import json
+from nova_tls_helper import nova_request
 from datetime import datetime
 import mimetypes
 from SharePointUploader import upload_file_to_sharepoint
@@ -154,7 +154,13 @@ def GetDocumentsForAktliste(dt_DocumentList, Overmappe, Undermappe, Sagsnummer, 
                     }
                 }
 
-            response = requests.put(url, headers=headers, json=payload)
+            #response = requests.put(url, headers=headers, json=payload)
+            response = nova_request(
+                "PUT",
+                url,
+                headers=headers,
+                json=payload
+            )
             response.raise_for_status()
 
             DokumentType = response.json()["documents"][0]["fileExtension"]

@@ -7,14 +7,13 @@ import pandas as pd
 from datetime import datetime
 import os
 import json
-import os
 import time
 from office365.runtime.auth.authentication_context import AuthenticationContext
 from office365.sharepoint.client_context import ClientContext
 from office365.sharepoint.files.file import File
 from office365.runtime.auth.user_credential import UserCredential
+from nova_tls_helper import nova_request
 from urllib.parse import quote
-import re
 from SendSMTPMail import send_email
 from SharePointUploader import sharepoint_client, download_file_from_sharepoint
 def sanitize_sagstitel(sagstitel):
@@ -88,7 +87,13 @@ def get_document_list(Sagsnummer, GeoSag, NovaSag, KMD_access_token, KMDNovaURL,
         }
 
         try:
-            response = requests.put(url, headers=headers, json=payload)
+            #response = requests.put(url, headers=headers, json=payload)
+            response = nova_request(
+                "PUT",
+                url,
+                headers=headers,
+                json=payload
+             )
             response.raise_for_status()
             
             sagstitel = response.json()['cases'][0]['caseAttributes']['title']
