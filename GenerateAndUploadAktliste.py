@@ -44,6 +44,26 @@ def wrap_text(text, max_chars):
         wrapped_lines.append(line)
     return "<br/>".join(wrapped_lines)
 
+def compact_attachments(value, max_visible=5):
+    if pd.isna(value) or value is None:
+        return ""
+
+    text = str(value).strip()
+    if not text:
+        return ""
+
+    # Normalize line breaks
+    text = text.replace("\n", " ").replace("\r", " ")
+
+    # Split on comma and remove empty items
+    parts = [p.strip() for p in text.split(",") if p.strip()]
+
+    if len(parts) <= max_visible:
+        return ", ".join(parts)
+
+    visible = ", ".join(parts[:max_visible])
+    return f"{visible} (...) i alt {len(parts)} bilag"
+
 def GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,SharePointURL, Overmappe, Undermappe, tenant, client_id, thumbprint, cert_path ):
 
     cert_credentials = {
@@ -180,6 +200,8 @@ def GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,S
     # Create header row
     table_data = [[Paragraph(header, header_style) for header in headers]]
 
+    
+
     # Add data rows
     for _, row in df.iterrows():
         table_row = [
@@ -189,7 +211,7 @@ def GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,S
             Paragraph(wrap_text(row.get("Dokumentdato", "").strftime("%d-%m-%Y") if isinstance(row.get("Dokumentdato"), pd.Timestamp) else row.get("Dokumentdato", ""), char_limits[3]), cell_style),
             Paragraph(wrap_text(row.get("Dok ID", ""), char_limits[4]), cell_style),
             Paragraph(wrap_text(row.get("Bilag til Dok ID", ""), char_limits[5]), cell_style),
-            Paragraph(wrap_text(row.get("Bilag", ""), char_limits[6]), cell_style),
+            Paragraph(wrap_text(compact_attachments(row.get("Bilag", ""), max_visible=5), char_limits[6]), cell_style),
             Paragraph(wrap_text(row.get("Omfattet af aktindsigt?", ""), char_limits[7]), cell_style),
             Paragraph(wrap_text(row.get("Gives der aktindsigt?", ""), char_limits[8]), cell_style),
             Paragraph(wrap_text(row.get("Begrundelse hvis Nej/Delvis", ""), char_limits[9]), cell_style)
