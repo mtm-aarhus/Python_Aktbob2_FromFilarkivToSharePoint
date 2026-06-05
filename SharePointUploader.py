@@ -6,6 +6,26 @@ import random
 from office365.sharepoint.sharing.links.kind import SharingLinkKind
 from office365.sharepoint.sharing.role import Role
 
+
+class SharePointFolderNotFoundError(Exception):
+    def __init__(self, folder_url, original_error):
+        self.folder_url = folder_url
+        self.original_error = original_error
+        super().__init__(f"SharePoint folder not found: {folder_url}")
+
+
+def _is_sharepoint_folder_not_found(error):
+    error_text = str(error)
+    return any(
+        indicator in error_text
+        for indicator in [
+            "System.IO.FileNotFoundException",
+            "Filen blev ikke fundet",
+            "-2147024894",
+        ]
+    )
+
+
 def sharepoint_client(tenant, client_id, thumbprint, cert_path, SharePointUrl) -> ClientContext:
         try:
             cert_credentials = {
@@ -50,9 +70,14 @@ def upload_file_to_sharepoint(site_url,Overmappe, Undermappe, file_path, ctx):
 
         # Construct folder path
         folder_url = f"/Teams/tea-teamsite10506/Delte Dokumenter/Aktindsigter/{Overmappe}/{Undermappe}"
-        folder = ctx.web.get_folder_by_server_relative_path(folder_url)
-        ctx.load(folder)
-        ctx.execute_query()
+        try:
+            folder = ctx.web.get_folder_by_server_relative_path(folder_url)
+            ctx.load(folder)
+            ctx.execute_query()
+        except Exception as e:
+            if _is_sharepoint_folder_not_found(e):
+                raise SharePointFolderNotFoundError(folder_url, e) from e
+            raise
 
         file_name = os.path.basename(file_path)
         file_size = os.path.getsize(file_path)
@@ -76,6 +101,8 @@ def upload_file_to_sharepoint(site_url,Overmappe, Undermappe, file_path, ctx):
 
         print(f"File uploaded successfully using chunked upload.")
 
+    except SharePointFolderNotFoundError:
+        raise
     except Exception as e:
         raise Exception(f"Failed to upload file '{file_path}': {e}")
     

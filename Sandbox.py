@@ -43,6 +43,8 @@ orchestrator_connection = OrchestratorConnection(
         "AktbobFromFilarkivToSharePoint",
         os.getenv("OpenOrchestratorSQL"),
         os.getenv("OpenOrchestratorKey"),
+        None,
+        None,
         None
     )
 

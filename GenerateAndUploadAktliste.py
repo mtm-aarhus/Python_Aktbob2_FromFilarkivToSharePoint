@@ -8,7 +8,8 @@ from PIL import ImageFont, ImageDraw, Image
 import pandas as pd
 from datetime import datetime 
 import time        
-from SharePointUploader import upload_file_to_sharepoint
+from SharePointUploader import SharePointFolderNotFoundError, upload_file_to_sharepoint
+from SharePointNotifications import send_missing_sharepoint_delivery_folder_email
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
@@ -64,7 +65,33 @@ def compact_attachments(value, max_visible=5):
     visible = ", ".join(parts[:max_visible])
     return f"{visible} (...) i alt {len(parts)} bilag"
 
-def GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,SharePointURL, Overmappe, Undermappe, tenant, client_id, thumbprint, cert_path ):
+
+
+def handle_missing_sharepoint_folder(
+    error,
+    Sagsnummer,
+    Overmappe,
+    Undermappe,
+    MailModtager=None,
+    orchestrator_connection=None,
+):
+    if MailModtager is None:
+        raise error
+
+    if orchestrator_connection:
+        orchestrator_connection.log_info(
+            f"SharePoint udleveringsmappe blev ikke fundet: {error.folder_url}"
+        )
+
+    send_missing_sharepoint_delivery_folder_email(
+        receiver=MailModtager,
+        Sagsnummer=Sagsnummer,
+        Overmappe=Overmappe,
+        Undermappe=Undermappe,
+        folder_url=error.folder_url,
+    )
+
+def GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,SharePointURL, Overmappe, Undermappe, tenant, client_id, thumbprint, cert_path, MailModtager=None, orchestrator_connection=None ):
 
     cert_credentials = {
         "tenant": tenant,
@@ -149,13 +176,24 @@ def GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,S
     worksheet.add_table(table)
     workbook.save(AktlisteFileName)
 
-    upload_file_to_sharepoint(
-        site_url=SharePointURL,
-        Overmappe=Overmappe,
-        Undermappe=Undermappe,
-        file_path=AktlisteFileName,
-        ctx = ctx
-    )
+    try:
+        upload_file_to_sharepoint(
+            site_url=SharePointURL,
+            Overmappe=Overmappe,
+            Undermappe=Undermappe,
+            file_path=AktlisteFileName,
+            ctx = ctx
+        )
+    except SharePointFolderNotFoundError as e:
+        handle_missing_sharepoint_folder(
+            error=e,
+            Sagsnummer=Sagsnummer,
+            Overmappe=Overmappe,
+            Undermappe=Undermappe,
+            MailModtager=MailModtager,
+            orchestrator_connection=orchestrator_connection,
+        )
+        return False
 
     PDFAktlisteFilnavn = f"Aktliste - {Sagsnummer} - {DokumentlisteDatoString}.pdf"
 
@@ -290,13 +328,24 @@ def GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,S
     doc.build([report_table])
 
     # Upload Excel to Sharepoint
-    upload_file_to_sharepoint(
-        site_url=SharePointURL,
-        Overmappe=Overmappe,
-        Undermappe=Undermappe,
-        file_path=PDFAktlisteFilnavn,
-        ctx = ctx
-    )
+    try:
+        upload_file_to_sharepoint(
+            site_url=SharePointURL,
+            Overmappe=Overmappe,
+            Undermappe=Undermappe,
+            file_path=PDFAktlisteFilnavn,
+            ctx = ctx
+        )
+    except SharePointFolderNotFoundError as e:
+        handle_missing_sharepoint_folder(
+            error=e,
+            Sagsnummer=Sagsnummer,
+            Overmappe=Overmappe,
+            Undermappe=Undermappe,
+            MailModtager=MailModtager,
+            orchestrator_connection=orchestrator_connection,
+        )
+        return False
 
     try:
         os.remove(AktlisteFileName)

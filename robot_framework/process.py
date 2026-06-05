@@ -129,6 +129,14 @@ def process(orchestrator_connection: OrchestratorConnection, queue_element: Queu
 
     dt_AktIndex = GetDocumentsForAktliste(dt_DocumentList = dt_DocumentList, Overmappe = Overmappe, Undermappe = Undermappe, Sagsnummer = Sagsnummer, GeoSag = GeoSag, KMDNovaURL = KMDNovaURL, KMD_access_token = KMD_access_token, go_session = go_session)
     dt_AktIndex = DownloadFilesFromFilarkivAndUploadToSharePoint(FilarkivURL, Filarkiv_access_token, dt_AktIndex, FilarkivCaseID, SharePointURL, Overmappe, Undermappe, MailModtager, Sagsnummer, tenant, client_id, thumbprint, cert_path, orchestrator_connection )
-    GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,SharePointURL, Overmappe, Undermappe, tenant, client_id, thumbprint, cert_path )
+    if dt_AktIndex is None:
+        orchestrator_connection.log_info('SharePoint udleveringsmappe mangler. Sagsbehandler er adviseret, processen afsluttes')
+        return
+
+    aktliste_result = GenerateAndUploadAktliste(dt_AktIndex, Sagsnummer, DokumentlisteDatoString,SharePointURL, Overmappe, Undermappe, tenant, client_id, thumbprint, cert_path, MailModtager=MailModtager, orchestrator_connection=orchestrator_connection )
+    if aktliste_result is False:
+        orchestrator_connection.log_info('SharePoint udleveringsmappe mangler. Sagsbehandler er adviseret, processen afsluttes')
+        return
+
     SendShareLinkToDeskpro(SharePointURL, Overmappe, PodioID, AktbobAPIKey, DeskProID, MailModtager, Sagsnummer, tenant, client_id, thumbprint, cert_path, orchestrator_connection)
     

@@ -4,7 +4,8 @@ import json
 import os
 import time
 from datetime import datetime
-from SharePointUploader import upload_file_to_sharepoint
+from SharePointUploader import SharePointFolderNotFoundError, upload_file_to_sharepoint
+from SharePointNotifications import send_missing_sharepoint_delivery_folder_email
 from SendSMTPMail import send_email
 from office365.sharepoint.client_context import ClientContext
 import sys
@@ -72,7 +73,7 @@ def download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnumme
                     dt_AktIndex.at[index, "Filnavn"] = f"{file_basename}.pdf"
                     
                     download_url = f"{FilarkivURL}/FileIO/Download?fileId={file_id}"
-                    file_path = os.path.join("C:\\Users", os.getlogin(), "Downloads", file_name)
+                    file_path = file_name
                     print(f'Getting {file_name}')
                     response = requests.get(download_url, headers=headers)
                     if response.status_code == 404:
@@ -102,18 +103,31 @@ def DownloadFilesFromFilarkivAndUploadToSharePoint( FilarkivURL, Filarkiv_access
 
     downloaded_files = download_files(FilarkivURL, FilarkivCaseID, Filarkiv_access_token, Sagsnummer, MailModtager, dt_AktIndex, orchestrator_connection )
     if downloaded_files:
-        for file_path in downloaded_files:
-            upload_file_to_sharepoint(
-                    site_url=SharePointURL,
-                    Overmappe=Overmappe,
-                    Undermappe=Undermappe,
-                    file_path=file_path,
-                    ctx = ctx
-                )
-            try:
-                os.remove(file_path)
-            except Exception as e:
-                raise Exception(f"Error deleting {file_path}: {str(e)}")
+        try:
+            for file_path in downloaded_files:
+                upload_file_to_sharepoint(
+                        site_url=SharePointURL,
+                        Overmappe=Overmappe,
+                        Undermappe=Undermappe,
+                        file_path=file_path,
+                        ctx = ctx
+                    )
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    raise Exception(f"Error deleting {file_path}: {str(e)}")
+        except SharePointFolderNotFoundError as e:
+            orchestrator_connection.log_info(
+                f"SharePoint udleveringsmappe blev ikke fundet: {e.folder_url}"
+            )
+            send_missing_sharepoint_delivery_folder_email(
+                receiver=MailModtager,
+                Sagsnummer=Sagsnummer,
+                Overmappe=Overmappe,
+                Undermappe=Undermappe,
+                folder_url=e.folder_url,
+            )
+            return None
     else:
         orchestrator_connection.log_info('Ingen filer er blevet downloadet, slutter processen')
         return dt_AktIndex
