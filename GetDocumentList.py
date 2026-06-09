@@ -168,6 +168,8 @@ def get_document_list(Sagsnummer, GeoSag, NovaSag, KMD_access_token, KMDNovaURL,
         if local_file_path.endswith('.xlsx'):
             # Read Excel file into a Pandas DataFrame
             dt_DocumentList = pd.read_excel(local_file_path)
+            print("Columns found:", dt_DocumentList.columns.tolist())  # <-- add here
+            dt_DocumentList.columns = dt_DocumentList.columns.str.strip()
             os.remove(local_file_path)
         else:
             print(f"Downloaded file is not an Excel file: {local_file_path}")
